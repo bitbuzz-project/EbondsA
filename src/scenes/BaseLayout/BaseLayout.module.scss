@@ -1,0 +1,33 @@
+.BaseLayout{
+    // padding: 10px 6%;
+    background-repeat: no-repeat;
+    background-position: bottom; 
+    background-size: 100vw;
+    // background-image: url(https://static.space.id/assets/svg/bg.svg);
+    background-color: rgb(245, 245, 245);
+    .content{ 
+        min-height: 100vh;
+    }
+}
+
+@media (min-width:350px) {
+ .BaseLayout{
+    // padding: 10px 6%;
+    // padding-left: 12vw;
+    // padding-right: 12vw;
+}   
+}
+
+@media (max-width: 1280px) {
+    .BaseLayout{
+        padding-left: 4vw;
+        padding-right: 4vw;
+    }
+}
+
+@media (max-width: 1000px) and (orientation: portrait) {
+    .BaseLayout{
+        padding-left: 4vw;
+        padding-right: 4vw;
+    }
+}

@@ -1,0 +1,69 @@
+h1 {
+    font-family: Cabin;
+    font-size: 28pt;
+    color: rgb(53, 53, 53);
+}
+
+.customErrorMessage {
+    margin-top: 0;
+
+    font-size: 15pt;
+    text-align: center;
+    color: rgb(83, 83, 83) !important;
+}
+
+.originalMessageHeader {
+    margin-bottom: 0;
+    font-family: Cabin;
+}
+
+.originalMessage {
+    color: rgb(87, 87, 87);
+    margin-top: 0;
+    background-color: rgb(216, 216, 216);
+    padding: 0.5em;
+    font-family: monospace;
+    margin-bottom: 0;
+}
+
+.warningIconDiv {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-height: 100px !important;
+    padding-top: 1.5em;
+
+    img {
+        height: 100px !important;
+    }
+}
+
+.buttonDiv {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1em;
+
+    button {
+        background: rgb(29, 29, 29);
+        font-weight: 500;
+        border-radius: 6px;
+        letter-spacing: 0.875px;
+        color: rgb(255, 255, 255);
+        border: none;
+        font-size: 0.875rem;
+        padding-left: 30px; /* Increase padding-left as needed */
+        padding-right: 30px; /* Increase padding-right as needed */
+        padding-top: 10px;
+        padding-bottom: 10px;
+        display: flex;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    button:hover {
+        transform: scale(1.03);
+    }
+}

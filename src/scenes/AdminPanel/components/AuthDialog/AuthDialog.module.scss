@@ -1,0 +1,25 @@
+.dialogTitle{
+    display: flex;
+    justify-content: space-between;
+    h2{
+        margin: 0;
+    }
+}
+
+.inputs{
+    .errorMessage{
+        color: red;
+        margin: 0;
+    }
+}
+
+.inputs >*{
+    margin-top: 1em;
+    
+}
+
+.dialogActions{
+    display: flex;
+    justify-content: space-between !important;
+
+}

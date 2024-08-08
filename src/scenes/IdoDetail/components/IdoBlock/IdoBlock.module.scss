@@ -1,0 +1,467 @@
+.IdoBlock {
+    // width: calc(50% - 108px);
+    width: 35vw;
+    
+    margin-bottom: 36px;
+    background: #ffffff;
+    box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    padding-top: 2em;
+    padding-bottom: 2em;
+    padding-left: 2em;
+    padding-right: 2em;
+}
+
+.tokenBlock {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+    align-items: center;
+
+
+    .token {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+
+        .tokenLogo {
+            margin-right: 0.8em;
+            max-height: 80px;
+            width: auto;
+            max-width: 30%;
+        }
+
+        .text {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            margin-left: 15px;
+            width: 100%;
+        }
+
+        .symbol {
+            font-family: 'Figtree', sans-serif;
+            font-style: normal;
+            font-weight: bold;
+            font-size: 32px;
+            line-height: 39px;
+            color: #000000;
+        }
+
+        .name {
+            font-family: 'Figtree', sans-serif;
+            font-style: normal;
+            font-weight: normal;
+            font-size: 16px;
+            line-height: 20px;
+            color: #000000;
+        }
+    }
+
+    .progresLabel {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        margin-right: -36px;
+        .styledLabel {
+            background: linear-gradient(180deg, #0aa7f5 0%, #3ce7ff 100%);
+            border-radius: 4px 0px 0px 4px;
+            padding: 4px 7px;
+            font-family: 'Figtree', sans-serif;
+            font-style: normal;
+            font-weight: 500;
+            font-size: 16px;
+            line-height: 20px;
+            color: #ffffff;
+        }
+    }
+}
+
+.saleInfo {
+    .line {
+        height: 1.5px;
+        width: 100%;
+        background: #000000;
+        opacity: 0.1;
+        margin-bottom: 1em;
+        margin-top: 1em;
+    }
+}
+
+.totalRaised {
+    margin-top: 5px;
+    .text {
+        font-family: 'Figtree', sans-serif;
+        font-style: normal;
+        font-weight: normal;
+        font-size: 22px;
+        line-height: 20px;
+        color: #000000;
+        margin: 10px 0px;
+    }
+
+    .count {
+        font-family: 'Figtree', sans-serif;
+        font-style: normal;
+        font-weight: bold;
+        font-size: 32px;
+        line-height: 39px;
+        background: -webkit-linear-gradient(#0aa7f5, #3ce7ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+}
+
+.textToShowBlock {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 25px;
+    .textToShow {
+        display: flex;
+        flex-direction: column;
+        .text {
+            font-family: 'Figtree', sans-serif;
+            font-style: normal;
+            font-weight: normal;
+            font-size: 22px;
+            line-height: 20px;
+            color: #000000;
+        }
+        .value {
+            font-family: 'Figtree', sans-serif;
+            font-style: normal;
+            font-weight: bold;
+            font-size: 24px;
+            line-height: 29px;
+            color: #000000;
+        }
+    }
+}
+
+.launchDetaid {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 39px;
+    .block {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .subBlock {
+        display: flex;
+        flex-direction: row;
+        margin-bottom: 10px;
+    }
+
+    .text {
+        font-family: 'Figtree', sans-serif;
+        font-style: normal;
+        font-weight: normal;
+        font-size: 12px;
+        line-height: 15px;
+        color: #000000;
+        margin-right: 10px;
+    }
+
+    .value {
+        font-family: 'Figtree', sans-serif;
+        font-style: normal;
+        font-weight: bold;
+        font-size: 18px;
+        line-height: 15px;
+        color: #0495ce;
+        display: flex;
+        flex-direction: column;
+        justify-content: end;
+    }
+}
+
+.priceDetail {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    .price {
+        font-family: 'Figtree', sans-serif;
+        font-style: normal;
+        font-weight: 600;
+        font-size: 32px;
+        line-height: 39px;
+        text-align: right;
+        color: #000000;
+    }
+
+    .text {
+        font-family: 'Figtree', sans-serif;
+        font-style: normal;
+        font-weight: normal;
+        font-size: 16px;
+        line-height: 20px;
+        text-align: right;
+        color: #000000;
+    }
+}
+
+.roundDetail {
+    .block {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+
+        .text {
+            font-family: 'Figtree', sans-serif;
+            font-style: normal;
+            font-weight: normal;
+            font-size: 16px;
+            line-height: 20px;
+            text-align: right;
+            color: #000000;
+        }
+
+        .roundInfo {
+            font-family: 'Figtree', sans-serif;
+            font-style: normal;
+            font-weight: 600;
+            font-size: 24px;
+            line-height: 29px;
+            color: #000000;
+        }
+
+        .timeInfo {
+            font-family: 'Figtree', sans-serif;
+            font-style: normal;
+            font-weight: 600;
+            font-size: 24px;
+            line-height: 29px;
+            text-align: right;
+            background: -webkit-linear-gradient(#0aa7f5, #3ce7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    }
+}
+.progressBarWrapper {
+    margin-bottom: 1.5em;
+    .progressBar {
+        position: relative;
+        height: 30px;
+        margin-top: 20px;
+        .backPart {
+            background: #000000;
+            opacity: 0.1;
+            border-radius: 4px;
+            width: 100%;
+            height: 24px;
+            position: absolute;
+        }
+
+        .topPart {
+            background: linear-gradient(180deg, #0aa7f5 0%, #3ce7ff 100%);
+            border-radius: 4px;
+            height: 24px;
+            position: absolute;
+            max-width: 100%;
+        }
+    }
+
+    p {
+        margin: 0;
+        font-size: 8pt;
+        font-family: "Cabin";
+    }
+}
+
+@media (min-width: 350px) {
+    .IdoBlock {
+        margin-right: 0px;
+    }
+    .tokenBlock {
+        flex-direction: column;
+        .token {
+            justify-content: center;
+            flex-direction: column;
+            img {
+                width: 48px;
+                height: 48px;
+                margin: auto;
+            }
+            .name {
+                margin: 10px 0;
+            }
+            .text {
+                text-align: center;
+                margin: 0px;
+            }
+        }
+
+        .priceDetail {
+            .price {
+                text-align: left;
+            }
+
+            .text {
+                text-align: left;
+            }
+        }
+    }
+
+    
+}
+
+@media (min-width: 850px) {
+    .IdoBlock {
+        
+    }
+    .tokenBlock {
+        flex-direction: row;
+        .token {
+            flex-direction: row;
+            img {
+                width: auto;
+                height: auto;
+                margin: auto;
+            }
+            .name {
+                margin: 0;
+            }
+            .text {
+                text-align: center;
+                margin: 0px;
+            }
+        }
+
+        .priceDetail {
+            .price {
+                text-align: left;
+            }
+
+            .text {
+                text-align: left;
+            }
+        }
+    }
+}
+
+@media (min-width: 1280px) {
+    .IdoBlock {
+        width: calc(50% - 108px);
+    }
+}
+
+@media (max-width: 1440px) {
+    .IdoBlock {
+    }
+
+    .tokenBlock {
+        .token {
+            .tokenLogo {
+                height: 4em;
+            }
+
+            .name {
+                font-size: 10pt;
+            }
+
+            .symbol {
+                font-size: 16pt;
+                line-height: 16pt;
+            }
+        }
+    }
+
+    .saleInfo {
+        .line {
+
+            margin-bottom: 0.5em;
+            margin-top: 0.5em;
+        }
+    }
+
+    .priceDetail{
+        .price{
+            font-size:16pt;
+            line-height: 14pt;
+        }
+    
+        .text{
+            font-size: 12pt;
+            line-height: 14pt;
+        }
+    }
+
+    .roundDetail {
+        .block {
+    
+            .text {      
+                font-size: 10pt;
+                line-height: 10pt;
+            }
+    
+            .roundInfo {   
+                font-size: 12pt;
+                line-height: 12pt;
+            }
+    
+            .timeInfo {
+                font-size: 12pt;
+                line-height: 12pt;
+            }
+        }
+    }
+
+    .progressBarWrapper {
+        margin-bottom: 0.5em;
+        .progressBar {
+            position: relative;
+            height: 20px;
+            margin-top: 10px;
+            .backPart {
+                background: #000000;
+                opacity: 0.1;
+                border-radius: 4px;
+                width: 100%;
+                height: 18px;
+                position: absolute;
+            }
+    
+            .topPart {
+                background: linear-gradient(180deg, #0aa7f5 0%, #3ce7ff 100%);
+                border-radius: 4px;
+                height: 18px;
+                position: absolute;
+                max-width: 100%;
+            }
+        }
+    
+        p {
+            margin: 0;
+            font-size: 6pt;
+            font-family: "Cabin";
+        }
+    }
+
+
+    
+}
+
+@media (max-width: 1000px) and (orientation: portrait) {
+    .IdoBlock{
+        width: auto;
+
+        .tokenBlock{
+            flex-direction: row;
+            .token{
+                display: flex;
+                flex-direction: row;;
+                .tokenLogo{
+                    margin-left: -5px;
+                }
+            }
+
+        }
+    }
+}

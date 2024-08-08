@@ -1,0 +1,97 @@
+.tableRow{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 32px;
+
+    .text{
+        font-family: 'Figtree', sans-serif;
+        font-style: normal;
+        font-weight: normal;
+        font-size: 16px;
+        line-height: 20px;
+        color: #000000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .info{
+        font-family: 'Figtree', sans-serif;
+        font-style: normal;
+        font-weight: 600;
+        font-size: 16px;
+        line-height: 20px;
+        text-align: right;
+        color: #000000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .link{
+        display: flex;
+    }
+
+}
+.line{
+    background: #000000;
+    opacity: 0.1;
+    border-radius: 4px;
+    height: 1px;
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.img{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-right: 10px;
+}
+
+.linkText{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.linkTextShort{
+    text-overflow: ellipsis;
+    overflow: hidden; 
+    width: 120px; 
+    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+}
+
+@media (max-width: 1440px){
+    .tableRow{
+        margin-top: 16px;
+
+        .text{
+            font-size: 11pt;
+        }
+
+        .info{
+            font-size: 11pt;
+        }
+    }
+}
+
+@media (max-width: 1000px) and (orientation: portrait) {
+    .tableRow{
+        margin-top: 10px;
+        .text{
+            font-size: 10pt;
+        }
+
+        .info{
+            font-size: 10pt;
+        }
+    }
+}

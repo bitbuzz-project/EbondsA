@@ -1,0 +1,842 @@
+$font-global: 'Space Grotesk';
+$button-background-color: rgb(52, 123, 255);
+
+.activeButton {
+    font-weight: bold;
+  }
+  
+.headerLinksContainer {
+    display: flex;
+    align-items: center;
+  }
+  
+  .centeredLinks {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  
+  .buttonWeb {
+    display: flex;
+    align-items: center;
+    column-gap: 30px;
+    padding-left: 150px;
+    margin-bottom: 16px;
+  }
+
+  .buttonRight {
+    display: flex;
+    align-items: center;
+    column-gap: 10px;
+    flex-direction: column;
+
+  }
+  
+  .buttonRightpc {
+    display: flex;
+    align-items: center;
+    column-gap: 10px;
+
+  }
+/* Media query for mobile devices */
+@media only screen and (max-width: 767px) {
+    .buttonRightpc {
+        display: none; /* Hide the buttons on mobile devices */
+    }
+}
+// ... (other styles)
+
+.mobileMenuToggle {
+    display: none; // Initially hide on larger screens
+  
+    @media (max-width: 600px) {
+      display: block; // Show on smaller screens
+      position: fixed;
+      margin-top: 13px;
+      top: 15px;
+      right: 10px;
+      margin-right: 10px;
+      z-index: 1000; // Adjust the z-index as needed
+    }
+  }
+
+
+  /* Add this CSS to your existing stylesheet */
+
+/* Width and height for the scrollbar track */
+::-webkit-scrollbar {
+    width: 12px;
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #bd7926;
+  }
+  
+  /* Handle on active */
+  ::-webkit-scrollbar-thumb:active {
+    background: #bd7926;
+  }
+  
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #d7a96d;
+    border-radius: 6px; /* Adjust the border-radius value as needed */
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #eee;
+  }
+  
+  /* Corner */
+  ::-webkit-scrollbar-corner {
+    background: #eee;
+  }
+  
+  // ... (other styles)
+  
+  .Button {
+    background: rgb(29, 29, 29);
+    font-weight: 500;
+    border-radius: 6px;
+    letter-spacing: 0.875px;
+    color: rgb(255, 255, 255);
+    border: none;
+    font-size: 0.875rem;
+    padding-left: 30px; /* Increase padding-left as needed */
+    padding-right: 30px; /* Increase padding-right as needed */
+    padding-top: 10px;
+    padding-bottom: 10px;
+    display: flex;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+ 
+  }
+
+  
+.Header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+  
+    padding: 15px 35px;
+
+    border-bottom: 1px solid #ccc;
+
+
+    .ButtonInside {
+        align-items: center;
+        justify-content: center;
+        display: flex;
+        background: rgb(29, 29, 29);
+        font-weight: 500;
+        border-radius: 6px;
+        letter-spacing: 0.875px;
+        color: rgb(255, 255, 255);
+        border: none;
+        font-size: 0.875rem;
+        padding-left: 30px; /* Increase padding-left as needed */
+        padding-right: 30px; /* Increase padding-right as needed */
+        padding-top: 10px;
+        padding-bottom: 10px;
+        display: flex;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+
+
+    }
+    .logo {
+        cursor: pointer;
+        
+        img {
+            height: 60px;
+            width: auto;
+            
+            max-width: 14vw;
+            // -webkit-filter: drop-shadow(0px 0px 10px rgba(255, 255, 255, 0.5));
+            // filter: drop-shadow(0px 0px 10px rgba(253, 253, 253, 0.5));
+            transition: all 1s;
+        }
+
+        img:hover {
+            -webkit-filter: drop-shadow(0px 0px 20px rgba(255, 255, 255, 1));
+            filter: drop-shadow(0px 0px 20px rgba(253, 253, 253, 1));
+        }
+    }
+
+    .connectButton {
+        width: 200px;
+        height: 54px;
+        color: rgb(255, 255, 255);
+        left: 1458px;
+        top: 36px;
+        
+        background: rgba(52, 79, 94, 0.36);
+        border-radius: 12px;
+        padding: 0.125rem !important;
+        padding: 0px 6px;
+font-weight: bold;
+  img {
+    position: relative;
+    right: 10px;
+  }
+        font-family: $font-global;
+        font-style: normal;
+        font-weight: 700 !important;
+        font-size: 0.875rem !important;
+        line-height: 1.25rem !important;
+        /* identical to box height */
+        cursor: pointer;
+        color: #000000;
+        transition: 0.5s;
+        color: white;
+        // box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.274);
+    }
+
+    .connectButton:hover {
+        background: rgba(197, 121, 54, 0.471);
+    }
+
+    .connectedButton {
+        background: rgb(255, 255, 255);
+        font-weight: 500;
+        border-radius: 6px;
+        letter-spacing: 0.875px;
+        font-family: "Space Grotesk";
+        color: rgb(46, 46, 46);
+        border: 1px solid #f0f0f0;
+        font-size: 0.865rem;
+        padding-left: 10px; /* Increase padding-left as needed */
+        padding-right: 10px; /* Increase padding-right as needed */
+        padding-top: 8px;
+        padding-bottom: 8px;
+        display: flex;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+
+        .balanceDiv {
+            color: rgb(191, 191, 191) !important;
+            height: 100%;
+            font-weight: 700!important;
+            border: 3px solid rgba(0, 0, 0, 0);
+            border-radius: 10px;
+            border-right: 0px;
+            padding-left: 1em;
+            display: flex;
+            font-size: .875rem!important;
+            align-items: center;
+            padding-right: 1em;
+            border-top-right-radius: 0px;
+            border-bottom-right-radius: 0px;
+        }
+
+        .splitter {
+            // width: 1px;
+            // background-color: rgba(255, 255, 255, 0.479);
+            // height: 50%;
+        }
+
+        .addressDiv {
+      
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: 1s;
+
+            .personIconDiv {
+                margin-left: 0.5em;
+                background-color: white;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                border-radius: 3em;
+                border: 0px;
+                height: 3em;
+                width: 3em;
+
+                .personIcon {
+                    height: 1em;
+                }
+            }
+        }
+
+        .addressDiv:hover {
+            // box-shadow: 0px 0px 10px rgba(255, 255, 255, 1);
+            // clip-path: inset(-15px -15px -15px 0px);
+            background-color: rgba(255, 255, 255, 0.053);
+        }
+    }
+}
+.button {
+  display: flex;
+
+    .buttonWeb {
+        display: flex;
+        align-items: center;
+
+        .winPeak{
+            background-color: gold;
+            font-weight: 900;
+            font-family: "Montserrat";
+            text-align: center;
+            vertical-align: center;
+            width: auto;
+            padding-left: 0.75em;
+            padding-right: 0.75em;
+            height: 2.5em;
+            position: relative;
+            
+            border-radius: 10px;
+            border-width: 0px;
+            font-family: 'Cabin';
+            font-style: normal;
+            font-size: 14pt;
+
+            /* identical to box height */
+            cursor: pointer;
+            color: black;
+            margin-right: 0.5em;
+            transition: 0.5s all ease-out;
+        }
+
+        .winPeak:active{
+            transform: scale(0.5);
+            filter: brightness(0.9);
+
+        }
+
+        .winPeak:hover{
+            transform: translateY(-3px);
+        }
+
+      
+    }
+}
+.applyForIdo {
+    text-decoration: none;
+    border:none;
+
+ // text-transform: uppercase;
+
+ font-size: 18px;
+ cursor: pointer;
+ color: #000;
+ margin-right: 0.5em;
+ transition: color 0.3s;
+       }
+
+       .applyForIdo:after {
+           content: "";
+           position: absolute;
+           width: 100%;
+           transform: scaleX(0);
+           height: 2px;
+           bottom: 0;
+           left: 0;
+           background-color: #ffffff;
+           transform-origin: bottom right;
+           transition: transform 0.25s ease-out;
+       }
+
+       .applyForIdo:hover:after {
+           transform: scaleX(1);
+           transform-origin: bottom left;
+       }
+.buttonMobile {
+
+    .iconMobile {
+        background-color: white;
+        border-radius: 100%;
+        padding: 6px;
+        color: black;
+    }
+}
+.showMobileMenu {
+    display: none;
+}
+
+.drawerCloseIconDiv {
+    background-color: white;
+    display: flex;
+    justify-content: flex-end;
+    padding: 1em;
+    padding-bottom: 0em;
+}
+
+.MobileDrawer {
+    background: white;
+    border-radius: 0 0 0 100vw;
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 6em;
+
+    .drawerContent {
+        h1 {
+            margin: 0;
+            font-size: 20pt;
+            margin-bottom: 0;
+            font-family: "Montserrat";
+            font-weight: 900;
+        }
+
+        hr {
+            border-color: rgba(202, 202, 202, 0.116);
+        }
+
+        .mobileAccount {
+            display: flex;
+            margin-top: 0.5em;
+            align-items: stretch;
+
+            .accountIcon {
+                margin-right: 0.5em;
+            }
+
+            .userInfo {
+                height: auto;
+                font-family: "Montserrat";
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                div {
+                    font-size: 11pt;
+                }
+
+                .balanceDiv {
+                    font-weight: 600;
+                }
+            }
+        }
+
+        .mobileConnectWallet {
+            background: linear-gradient(180deg, #0aa7f5 0%, #3ce7ff 100%);
+            border-radius: 50px;
+            border: none;
+            color: white;
+            font-family: "Montserrat";
+            font-weight: 600;
+            font-size: 12pt;
+            height: 2.7em;
+            padding-left: 1.5em;
+            padding-right: 1.5em;
+        }
+    }
+}
+.mobileMenu {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+
+    .menuBlank {
+        width: 30%;
+        background: #000000;
+        opacity: 0.3;
+    }
+    .menuElements {
+        background-color: #ffffff;
+        width: 70%;
+        text-align: center;
+        .title {
+            font-family: $font-global;
+            font-style: normal;
+            font-weight: 600;
+            font-size: 36px;
+            line-height: 48px;
+            text-align: center;
+            background: -webkit-linear-gradient(#0aa7f5, #3ce7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+        }
+
+        .menuElement {
+            font-family: $font-global;
+            font-style: normal;
+            font-weight: 600;
+            font-size: 18px;
+            line-height: 48px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+    }
+}
+
+.hideMenu {
+    display: none;
+}
+
+@media (min-width: 350px) {
+    .showMobileMenu {
+        display: block;
+    }
+    .buttonMobile {
+        display: block;
+        img {
+            display: block;
+            height: 24px;
+            width: 24px;
+        }
+    }
+    .button {
+
+        margin-top: 16px;
+    }
+}
+
+@media (min-width: 840px) {
+    .showMobileMenu {
+        display: none;
+    }
+
+    .button {
+        display: block;
+    }
+    .buttonMobile {
+        display: none;
+        img {
+            display: none;
+            height: 24px;
+            width: 24px;
+        }
+    }
+}
+
+.kyc {
+    min-height: 2em;
+
+    width: 100%;
+
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.363);
+    transition: 1s;
+
+    .text {
+        margin-right: 10px;
+        font-family: $font-global;
+        font-style: normal;
+        font-weight: bold;
+        font-size: 16px;
+        line-height: 20px;
+        color: white;
+        display: flex;
+        margin: auto;
+        align-items: center;
+    }
+
+    .greentext{
+        margin-right: 10px;
+        font-family: $font-global;
+        font-style: normal;
+        font-weight: bold;
+        font-size: 16px;
+        line-height: 20px;
+        color: rgb(211, 254, 236);
+        display: flex;
+        margin: auto;
+        align-items: center;
+    }
+
+    .closeButton {
+        margin-right: 0;
+    }
+    button {
+        text-decoration: underline;
+        background-color: transparent;
+        border: none;
+        font-family: $font-global;
+        font-style: normal;
+        font-weight: bold;
+        font-size: 16px;
+        line-height: 20px;
+        color: white;
+        cursor: pointer;
+    }
+}
+
+.hide {
+    display: none;
+}
+
+@media (max-width: 1440px) {
+    .button {
+        .buttonWeb {
+            flex-direction: column;
+            .applyForIdo {
+                height: 2.5em;
+            }
+
+            .connectButton {
+                height: 2.5em;
+                width: auto;
+                padding-left: 2em;
+                padding-right: 2em;
+            }
+        }
+    }
+
+    .Header {
+        .connectedButton {
+            font-size: 0.9em;
+            background: rgba(52, 123, 255, 0);
+            display: flex;
+            align-items: center;
+            border: 2px solid white;
+
+            height: 2.5em;
+            color: white;
+            font-family: $font-global;
+
+            border-radius: 2.5em;
+
+            .balanceDiv {
+                color: rgb(245, 245, 245);
+                height: 100%;
+
+                border-right: 0px;
+                padding-left: 1em;
+                display: flex;
+                align-items: center;
+                padding-right: 1em;
+                border-top-right-radius: 0px;
+                border-bottom-right-radius: 0px;
+            }
+
+            .splitter {
+                width: 1px;
+                background-color: rgba(255, 255, 255, 0.479);
+                height: 50%;
+            }
+
+            .addressDiv {
+                color: rgb(255, 255, 255);
+
+                height: 2.5em;
+                // border: 2px solid rgb(255, 255, 255);
+                border-radius: 3em;
+                border-right: 0px;
+                border-left: 0px;
+                border-bottom-left-radius: 0px;
+                border-top-left-radius: 0px;
+                padding-left: 1em;
+
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+                transition: 1s;
+
+                .personIconDiv {
+                    margin-left: 0.5em;
+                    background-color: white;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    border-radius: 2.5em;
+                    border: 0px;
+                    height: 2.5em;
+                    width: 2.5em;
+
+                    .personIcon {
+                        height: 0.9em;
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 1000px) and (orientation: portrait) {
+    .Header {
+        padding: 0;
+        margin-bottom: 2em;
+        .logo {
+            img {
+                max-width: 40vw;
+                // width: 40vw;
+            }
+        }
+    }
+}
+
+// Add these styles to your existing stylesheet
+.buttonRight {
+    position: relative;
+  }
+  
+  .dropdown {
+    display: inline-block;
+  }
+  
+  .dropbtn {
+        background: rgb(255, 255, 255);
+        font-weight: 500;
+        border-radius: 6px;
+        letter-spacing: 0.875px;
+        font-family: "Space Grotesk";
+        color: rgb(46, 46, 46);
+        border: 1px solid #f0f0f0;
+        font-size: 0.865rem;
+        padding-left: 10px; /* Increase padding-left as needed */
+        padding-right: 10px; /* Increase padding-right as needed */
+        padding-top: 8px;
+        padding-bottom: 8px;
+        display: flex;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+      
+      
+  }
+  
+  .dropdownContent {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    font-family: 'Space Grotesk';
+    border-radius: 6px;
+    width: 200px;
+
+  }
+
+  .dropdownHeader {
+    background-color: #fff; // Change to your desired background color
+    color: rgb(53, 53, 53); // Change to your desired text color
+
+    display: block;
+    font-size: .875rem;
+    line-height: 1.25rem;
+    cursor: default; // Disable cursor for the header
+    font-weight: 500; // Optionally make the text bold
+    padding-left: 14px;
+    padding-bottom: 14px;
+    padding-top: 14px;
+    border-color: rgb(40 44 43/1);
+    border-bottom-width: 1px;
+  }
+  
+  .dropdownContent div {
+    padding: 12px 16px;
+    display: block;
+    cursor: pointer;
+  }
+  
+  .dropdown:hover .dropdownContent {
+    display: block;
+  }
+  
+/* Existing styles remain unchanged */
+
+/* Mobile styles */
+/* Mobile styles */
+@media (max-width: 768px) {
+    .Header {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 15px;
+
+        .logo {
+            margin-bottom: 20px;
+        }
+
+        .connectedButton {
+            background: rgb(255, 255, 255);
+        font-weight: 500;
+        border-radius: 6px;
+        letter-spacing: 0.875px;
+        font-family: "Space Grotesk";
+        color: rgb(46, 46, 46);
+        border: 1px solid #f0f0f0;
+        font-size: 0.865rem;
+        padding-left: 10px; /* Increase padding-left as needed */
+        padding-right: 10px; /* Increase padding-right as needed */
+        padding-top: 8px;
+        padding-bottom: 8px;
+        display: flex;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+
+            .balanceDiv,
+            .addressDiv {
+                width: 100%;
+                padding-left: 0;
+                padding-right: 0;
+
+                .personIconDiv {
+                    margin-left: 0.5em;
+                }
+            }
+            
+        }
+
+        /* Ensure that .showMobileMenu is correctly applied to the mobile menu container */
+        .showMobileMenu {
+            display: flex; /* Change this to the appropriate display value for your mobile menu */
+            flex-direction: column; /* Adjust this based on your mobile menu structure */
+            /* Add any other necessary styles for the mobile menu container */
+        }
+
+        /* Adjust the styling of other elements as needed for mobile */
+        .button {
+            display: none;
+        }
+    }
+    
+    .mobileMenuButton {
+        display: block; // or inline-block, or flex, depending on your layout
+        color: #fff; // Adjust the color as needed
+      }
+    .buttonMobile {
+        display: block;
+
+        .iconMobile {
+            display: block;
+            height: 24px;
+            width: 24px;
+        }
+    }
+
+  
+
+    .hideMenu {
+        display: none;
+    }
+
+    .buttonWeb {
+        padding-left: 0;
+    }
+
+    .applyForIdo {
+        font-size: 16px;
+        
+    }
+
+    .connectButton {
+        width: 100%;
+        padding-left: 0;
+        padding-right: 0;
+    }
+}
+  

@@ -1,0 +1,24 @@
+.TableHeader{
+    display: flex;
+    flex-direction: row;
+    font-family: 'Figtree', sans-serif;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 17px;
+    color: #000000;
+    padding: 24px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 1440px){
+    .TableHeader{
+        font-size: 11pt;
+    }
+}
+
+@media(max-width: 1000px) and (orientation: portrait){
+    .TableHeader{
+        min-width: 700px;
+    }
+}

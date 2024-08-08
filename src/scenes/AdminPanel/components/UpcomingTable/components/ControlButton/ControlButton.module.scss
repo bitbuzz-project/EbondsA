@@ -1,0 +1,32 @@
+.styledButtonActive{
+    background: linear-gradient(180deg, #0AA7F5 0%, #3CE7FF 100%);
+    border-radius: 4px;
+    font-family: 'Figtree', sans-serif;
+    font-style: normal;
+    font-weight: 500;
+    width: 180px;
+    height: 48px;
+    font-size: 16px;
+    line-height: 20px;
+    color: #FFFFFF;
+    border: 0px;
+    margin-right: 16px;
+    margin-top: 10px;
+}
+
+.styledButton{
+    background: #F2F2F2;
+    border-radius: 4px;
+    width: 180px;
+    height: 48px;
+    font-family: 'Figtree', sans-serif;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 20px;
+    color: #000000;
+    opacity: 0.5;
+    border: 0px;
+    margin-right: 16px;
+    margin-top: 10px;
+}

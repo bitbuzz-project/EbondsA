@@ -1,0 +1,36 @@
+.infoPanel{
+
+    border-radius: 4px;
+    box-shadow: 0px 0px 15px rgba(139, 139, 139, 0.233);
+    margin-right: 2em;
+    padding: 2em 2em 2em 2em;
+
+    h1{
+        color: black !important;
+        font-family: 'Figtree', sans-serif;
+        font-size: 1.8rem !important;
+    }
+}
+
+.infoPanel:last-child{
+    margin-right: 0;
+}
+
+@media (max-width: 1440px) {
+    .infoPanel{
+        h1{
+            font-size: 16pt !important;
+        }
+
+        p{
+            font-size: 9pt;
+        }
+    }
+}
+
+@media (max-width: 1000px) and (orientation: portrait){
+    .infoPanel{
+        margin-right: 0px;
+        margin-bottom: 1em;;
+    }
+}

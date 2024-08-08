@@ -1,0 +1,16 @@
+
+
+body {
+  margin: 0;
+  font-family: 'Space Grotesk';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: rgb(249, 249, 249)
+};
+  
+
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}

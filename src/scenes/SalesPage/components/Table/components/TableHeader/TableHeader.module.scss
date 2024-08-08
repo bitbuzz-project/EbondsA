@@ -1,0 +1,26 @@
+.TableHeader{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    font-family: 'Figtree', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 100%;
+    line-height: 17px;
+    color: #000000;
+    padding: 14px;
+
+    div{
+        font-size: 4pt;
+    }
+
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 1500px){
+    .TableHeader{
+        div{
+            font-size: 12pt !important; 
+        }
+    }
+}

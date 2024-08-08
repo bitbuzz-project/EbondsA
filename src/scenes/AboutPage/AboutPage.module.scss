@@ -1,0 +1,66 @@
+.AboutPage{
+    .Uniswap {
+        display: flex;
+        flex-direction: column; /* Adjust as needed */
+        align-items: center;
+        justify-content: center;
+        padding: 20px; /* Adjust padding as needed */
+        position: relative;
+        
+      }
+    header{
+        min-height: 5vh;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+
+        h1{
+            margin-top: -14vh;
+            color: white;
+            font-family: 'Figtree', sans-serif;
+            font-size: 3.6vw;
+            letter-spacing: 0.03em;
+        }
+        p{
+            color: white;
+            font-family: 'Figtree', sans-serif;
+            font-size: 20pt;
+        }
+    }
+
+    section{
+        h1{
+            font-family: 'Cabin', sans-serif;
+            font-weight: 900;
+            margin-bottom: 0.2em;
+        }
+
+        p{
+            margin-top: 0;
+            font-family: 'Cabin', sans-serif;
+            font-size: 1.45em;
+        }
+
+        ul{
+            li{
+                font-family: 'Cabin', sans-serif;
+                font-size: 1.4em;
+            }
+        }
+        margin-bottom: 2.5em;
+    }
+
+    margin-bottom: 10em;
+}
+
+@media(max-width: 1500px){
+    .AboutPage{
+        header{
+            min-height: 60vh;
+            h1{
+                margin-top: -10vh;
+                font-size: 3.4vw;
+            }
+        }
+    }
+}

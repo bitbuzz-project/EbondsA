@@ -1,0 +1,429 @@
+.IdoBlock {
+    width: 100% !important;
+    display: flex;
+    margin-bottom: 36px;
+    background: #ffffff;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    z-index: 0;
+    height: fit-content;
+
+    header{
+        padding-top: 3em;
+        padding-bottom: 3em;
+        max-width: 20%;
+        
+        position: relative;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding-left: 2em;
+        width: auto;
+        padding-left: 5%;
+        padding-right: 5%;
+            
+        .bgImage{
+            object-fit: cover;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            
+            position: absolute;
+            z-index: 0;
+            border-radius: 8px;
+            filter: brightness(50%);
+        }
+    
+
+        .tokenBlock {
+            width: fit-content;
+            display: flex;
+            justify-content: space-between;
+            flex-direction: row;
+            z-index: 0;
+        
+            .token {
+                display: flex;
+                flex-direction: row;
+        
+                img {
+                    margin-left: -10px;
+                    border-radius: 100%;
+                }
+        
+                .text {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    margin-left: 15px;
+                    color: white;
+                }
+        
+                .name {
+                    font-family: 'Figtree', sans-serif;
+                    font-style: normal;
+                    font-weight: 900;
+                    font-size: 250% !important;
+                    line-height: 39px;
+                    color: white;
+                    width: fit-content;
+                }
+        
+                .price {
+                    font-family: 'Figtree', sans-serif;
+                    font-style: normal;
+                    font-weight: normal;
+                    font-size: 16px;
+                    line-height: 20px;
+                    color: #000000;
+                }
+            }
+        
+            .progresLabel {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                .styledLabel {
+                    background: linear-gradient(180deg, #0aa7f5 0%, #3ce7ff 100%);
+                    border-radius: 4px 0px 0px 4px;
+                    padding: 4px 7px;
+                    font-family: 'Figtree', sans-serif;
+                    font-style: normal;
+                    font-weight: 500;
+                    font-size: 16px;
+                    line-height: 20px;
+                    color: #ffffff;
+                }
+            }
+        }
+    }
+
+    main{
+        display: flex;
+        border-radius: 12px;
+        z-index: 2;
+        background-color: white;
+        padding-bottom: 1.5em !important;
+        padding-top: 1.5em !important;
+        margin-left: 1em;
+        align-items: center;
+        width: 100%;
+
+        .details{ 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 100%;
+            padding-right: 2em;
+        }
+    }
+}
+
+.verticalSeparator{
+    height: 100%;
+    width: 0px;
+    border: 1px solid rgb(221, 221, 221);
+    margin-left: 2em;
+    margin-right: 2em;
+}
+
+.progressBar{
+    position: relative;
+    height: 30px;
+    margin: 20px 0px;
+    margin-bottom: 0px;
+    .backPart{
+        background: #000000;
+        opacity: 0.1;
+        border-radius: 4px;
+        width: 100%;
+        height: 24px;
+        position: absolute;
+    }
+
+    .topPart{
+        background: linear-gradient(180deg, #0AA7F5 0%, #3CE7FF 100%);
+        border-radius: 4px;
+        height: 24px;
+        position: absolute;
+        max-width: 100%;
+    }
+
+}
+
+
+
+.saleInfo {
+    min-width: 42%;
+    .line {
+        height: 2px;
+        width: 100%;
+        background: #000000;
+        opacity: 0.1;
+        margin-top: 2vh;
+    }
+}
+
+.totalRaised {
+    margin-top: 5px;
+    .text {
+        font-family: "Montserrat";
+        font-weight: 400;
+        font-style: normal;
+        font-size: 12pt;
+        line-height: 14pt;
+        color: #000000;
+
+    }
+
+    .count {
+        font-family: "Montserrat";
+        font-style: normal;
+        font-weight: 600;
+        font-size: 24pt;
+        margin-top: 2pt;
+        background: -webkit-linear-gradient(#0aa7f5, #3ce7ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+}
+
+.textToShowBlock {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 3vh;
+
+    .textToShow {
+        display: flex;
+        flex-direction: column;
+        
+        .text {
+            font-family: 'Figtree', sans-serif;
+            font-style: normal;
+            font-weight: normal;
+            font-size: 14pt;
+            line-height: 20px;
+            color: #000000;
+        }
+        .value {
+            font-family: 'Figtree', sans-serif;
+            font-style: normal;
+            font-weight: 600;
+            font-size: 24px;
+            line-height: 29px;
+            color: #000000;
+        }
+    }
+}
+
+.launchDetaid {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 39px;
+    .block {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .subBlock {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-right: 5px;
+        height: 1.5em;
+    }
+
+    .text {
+        font-family: 'Figtree', sans-serif;
+        font-style: normal;
+        font-weight: normal;
+        font-size: 10pt;
+        line-height: 10pt;
+        color: #000000;
+        margin-right: 10px;
+    }
+
+    .value {
+        font-family: 'Figtree', sans-serif;
+        font-style: normal;
+        font-weight: 600;
+        font-size: 12pt;
+        line-height: 12pt;
+        color: #0495ce;
+        display: flex;
+        flex-direction: column;
+        justify-content: end;
+        margin-top: 0px !important;
+    }
+}
+
+@media (max-width: 1440px){
+    .IdoBlock{
+        header{
+            .tokenBlock{
+                .token{
+                    img{
+                        height: 5rem;
+                    }
+
+                }
+            }
+        }
+    }
+
+    .totalRaised {
+        .text {
+            font-size: 12pt;
+            line-height: 14pt;
+
+    
+        }
+    
+        .count {
+            font-size: 22pt;
+        }
+    }
+
+    .textToShowBlock {
+
+    
+        .textToShow {
+
+            .text {
+                font-size: 12pt;
+                line-height: 14pt;
+            }
+
+            .value {
+                font-size: 15pt;
+            }
+        }
+    }
+    .launchDetaid {
+        margin-top: 0px;
+        .block {
+            display: flex;
+            flex-direction: column;
+        }
+    
+        .subBlock {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin-right: 5px;
+            height: 1.5em;
+        }
+    
+        .text {
+            font-family: 'Figtree', sans-serif;
+            font-style: normal;
+            font-weight: normal;
+            font-size: 8pt;
+            line-height: 8pt;
+            color: #000000;
+            margin-right: 10px;
+        }
+    
+        .value {
+            margin-top: 0px !important;
+            font-size: 9pt;
+            line-height: 11pt;
+        }
+    }
+}
+
+@media (max-width: 1000px) and (orientation: portrait){
+    .IdoBlock {
+        width: 100%;
+        flex-direction: column;
+     
+
+        cursor: pointer;
+
+        main{
+            flex-direction: column;
+            padding: 1.5em;
+            justify-content: flex-start;
+
+            .saleInfo{
+                width: 90%;
+                margin-right: 0;
+            }
+
+            .launchDetaid{
+                width: 50%;
+            }
+
+            .progressBar{
+                width:  50%;
+            }
+        }
+    }
+
+    .totalRaised {
+        margin-top: 0px;
+        .text{
+            font-size: 8pt;
+            line-height: 12pt;
+        }
+
+        .count{
+            font-size: 14pt;
+        }
+    }
+
+    .textToShowBlock {   
+        margin-top: 0;
+        .textToShow {
+   
+            
+            .text {
+    
+                font-size: 8pt;
+
+            }
+            .value {
+                font-size: 12pt;
+                color: #000000;
+            }
+        }
+    }
+
+    .progressBar{
+        margin: 0;
+    }
+
+    .launchDetaid {
+        margin-top: 15px;
+
+        .subBlock {
+            
+            margin-right: 5px;
+        }
+    
+        .text {
+   
+            font-size: 6pt;
+            line-height: 6pt;
+            margin-right: 5px;
+        }
+    
+        .value {
+            font-family: 'Figtree', sans-serif;
+            font-style: normal;
+            font-weight: 600;
+            font-size: 8pt;
+            line-height: 8pt;
+            color: #0495ce;
+            display: flex;
+            flex-direction: column;
+            justify-content: end;
+        }
+    }
+}

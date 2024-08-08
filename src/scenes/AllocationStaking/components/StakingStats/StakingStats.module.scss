@@ -1,0 +1,81 @@
+.stakingStats{
+    width: calc(50% - 1em);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+
+    .statsHeader{
+        display: flex;
+        height: 35pt;
+        
+        align-items: center;
+        margin-bottom: 1em;
+
+        .headerIcon{
+            height: 28pt;
+            margin-right: 1em;
+            box-shadow: 0px 8px 16px rgb(226, 226, 226);
+            border-radius: 56pt;
+
+            img{
+                border-radius: 100%;;
+            }
+        }
+
+        .headerText{   
+            font-family: 'gotham-bold';
+            font-style: normal;
+            color: rgb(191, 191, 191) !important;
+            font-weight: 600;
+            font-size: 28pt;
+            line-height: 35pt;
+        }
+    }
+
+    .statsContent{
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+}
+
+
+@media (max-width: 1440px){
+    .stakingStats{
+        .statsHeader{
+            display: flex;
+            height: 28pt;
+            
+            align-items: center;
+            margin-bottom: 1em;
+    
+            .headerIcon{
+                height: 24pt;
+                margin-right: 1em;
+                box-shadow: 0px 8px 16px rgb(226, 226, 226);
+                border-radius: 48pt;
+            }
+    
+            .headerText{   
+                font-family: 'gotham-book';
+                font-style: normal;
+                font-weight: 600;
+                font-size: 22pt;
+                line-height: 28pt;
+            }
+        }
+    }
+}
+
+@media (max-width: 1000px) and (orientation: portrait){
+    .stakingStats{
+        width: 100%;
+        .statsHeader{
+            .headerText{
+                font-size: 20pt;
+            }
+
+        }
+    }
+}

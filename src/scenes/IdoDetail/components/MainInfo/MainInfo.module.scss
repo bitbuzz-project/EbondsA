@@ -1,0 +1,316 @@
+$font-global: "Monseratt", sans-serif;
+
+.mainInfo {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 40px;
+    
+    .title {
+        font-family: 'Figtree', sans-serif;
+        font-style: normal;
+        font-weight: bold;
+        font-size: 40px;
+        line-height: 49px;
+        color: #ffffff;
+    }
+
+    .text {
+        margin: 20px 0;
+        font-family: 'Figtree', sans-serif;
+        font-style: normal;
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 24px;
+        color: #ffffff;
+        
+    }
+     button {
+                z-index: 1;
+                margin-right: 10px;
+                width: 10em;
+                height: 35pt;
+                background: #ffffff;
+                border-radius: 35pt;
+                border-color: #ffffff;
+                border-width: 0px;
+                font-family: 'Figtree', sans-serif;
+                font-style: normal;
+                font-weight: 600;
+                font-size: 12pt;
+                
+                /* identical to box height */
+                cursor: pointer;
+
+                color: #000000;
+            }
+
+    .media {
+        a {
+            margin-right: 10px;
+            text-decoration: none;
+            img {
+                background: white !important;
+            }
+        }
+    }
+
+    .actionBlock {
+        display: flex;
+        align-items: center;
+
+        .buttonBlock {
+            margin-right: 1.5em;
+            
+            .inputs {
+                display: flex;
+                
+               
+
+                .inputFieldWrapper{
+                    margin-right: -60px;
+
+                    position: relative;
+
+                    .max{
+                        color: white;
+                        position:absolute;
+                        right: 70px;
+                        top: calc(60% - 12pt) !important;
+                    
+                        font-size: 12pt !important;
+                        border-radius: 8px 8px 0px 0px;
+                        font-weight: 700;
+                        cursor: pointer;
+                        transition: all 1s ease-out;
+                    }
+
+                    .max:hover{
+                        transform: scale(1.1);
+                    }
+
+                    .inputField {
+                        background: rgba(255, 255, 255, 0.2);
+                        border-radius: 35pt;
+                        border-width: 0px;
+                        color: white;
+                        border: none;
+                        height: 35pt;
+                        font-size: 14pt;
+                        font-weight: 900;
+                        padding-left: 1.5em;
+                        width: 80%;
+                        
+                        font-family: 'Montserrat';
+                        outline: none;
+                        padding-top: 0;
+                        padding-bottom: 0;
+                        z-index: 0;
+                    }
+    
+                    .inputField:focus{
+                        outline: none;
+                        border: none;
+                    }
+                }
+
+                
+
+                
+            }
+
+            button {
+                z-index: 1;
+                margin-right: 10px;
+                min-width: 10em;
+                width: fit-content;
+                height: 35pt;
+                background: #ffffff;
+                border-radius: 35pt;
+                border-color: #ffffff;
+                border-width: 0px;
+                font-family: 'Figtree', sans-serif;
+                font-style: normal;
+                font-weight: 600;
+                font-size: 100%;
+                
+                
+                /* identical to box height */
+                cursor: pointer;
+
+                color: #000000;
+                transition: all 0.5s ease-out;
+            }
+
+            button:hover{
+                box-shadow: 0px 0px 10px white;
+            }
+
+            button:disabled {
+                background: rgb(52, 195, 252);
+                color: white;
+                cursor: default;
+                box-shadow: none;
+            }
+        }
+
+        .mediaMobile {
+            a {
+                margin-right: 10px;
+                text-decoration: none;
+                img {
+                    background: rgb(255, 255, 255) !important;
+                    border-radius: 28px;
+                    height: 28px;
+                    width: auto;
+                }
+            }
+        }
+    }
+}
+
+@media (min-width: 350px) {
+    .mainInfo {
+        margin-top: 50px;
+        .title {
+            color: rgb(255, 255, 255);
+            margin-bottom: 1em !important;
+            margin-top: 1em;
+        }
+        .text {
+            color: rgb(255, 255, 255);
+            margin-bottom: 10px;
+        }
+        .media {
+            display: none;
+            color: #000;
+        }
+        .mediaMobile {
+            display: block;
+            img {
+                width: 24px;
+                height: 24px;
+            }
+        }
+    }
+}
+
+@media (min-width: 1280px) {
+    .mainInfo {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        width: 40%;
+        .title {
+            font-family: 'Figtree', sans-serif;
+            font-style: normal;
+            font-weight: bold;
+            font-size: 40px;
+            line-height: 49px;
+            color: #ffffff;
+        }
+
+        .text {
+            margin: 20px 0;
+            font-family: 'Figtree', sans-serif;
+            font-style: normal;
+            font-weight: 500;
+            font-size: 16px;
+            line-height: 24px;
+            color: #ffffff;
+        }
+
+        .media {
+            a {
+                margin-right: 10px;
+                text-decoration: none;
+            }
+        }
+    }
+}
+
+@media (max-width: 1440px){
+    .mainInfo {
+        margin-top: 0;
+
+        .title {
+            font-size: 20pt;
+            margin-bottom: 0;
+            line-height: 24pt;
+        }
+
+        .text {
+           font-size: 10pt;
+           margin: 0;
+           margin-bottom: 1em;
+           max-height: 8rem;
+           overflow-y: auto;
+        }
+        
+        .actionBlock{
+           
+            .mediaMobile {
+                min-width: 100px;
+                a {
+                    margin-right: 5px;
+                    text-decoration: none;
+                    img {
+                        background: rgb(255, 255, 255) !important;
+                        border-radius: 24px;
+                        height: 24px;
+                        width: auto;
+                    }
+                }
+            }
+
+            .buttonBlock {
+                
+    
+                .inputs {
+                    display: flex;
+
+                    .inputFieldWrapper{
+            
+                        .inputField {
+                  
+                            height: 25pt;
+                            font-size: 12pt;
+                            
+                        }
+                    }
+    
+                    
+                }
+
+                button {
+                    height: 25pt;
+                    font-size: 11pt;
+                    min-height: fit-content;
+                    width: fit-content;
+                    padding-left: 2em;
+                    padding-right: 2em;
+                }
+
+                button:disabled {
+                    background: rgb(52, 195, 252);
+                    color: white;
+                    cursor: default;
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 1000px) and (orientation: portrait) {
+    .mainInfo{
+        .title{
+            font-size: 25pt;
+            line-height: 25pt;
+        }
+
+        .text{
+            font-size: 16pt;
+        }
+    }
+}

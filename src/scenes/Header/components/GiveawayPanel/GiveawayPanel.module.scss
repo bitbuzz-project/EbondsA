@@ -1,0 +1,113 @@
+.giveawayPanel {
+    display: flex;
+
+    .gradientSection {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+
+        background: rgb(3, 1, 42);
+        background: linear-gradient(133deg, rgba(3, 1, 42, 1) 0%, rgba(2, 54, 182, 1) 48%, rgba(0, 236, 255, 1) 95%);
+        background-size: 400% 400%;
+        animation: gradient 20s ease infinite;
+        min-width: 30%;
+
+        @keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+        
+
+        .logo {
+            height: 60%;
+        }
+    }
+
+    .contentSection {
+        padding: 2em;
+        padding-bottom: 0;
+        font-family: "Cabin";
+        width: 100%;
+
+        p {
+            margin-bottom: 2em;
+        }
+
+        .subscribeForm {
+            display: flex;
+            height: 3em;
+            font-size: 15pt;
+            min-width: 100%;
+            width: 100%;
+
+            .email {
+                background-color: rgba(63, 63, 63, 0.041);
+                border: none;
+                font-size: 15pt;
+                padding-left: 1em;
+                width: 100%;
+                border-radius: 0.5em 0em 0 0.5em;
+            }
+
+            textarea.email:focus,
+            .email:focus {
+                outline: none;
+            }
+
+            .submit {
+                font-family: "Cabin";
+                border: none;
+                background-color: rgb(204, 234, 255);
+                border-radius: 0.5em;
+                padding-left: 2em;
+                padding-right: 2em;
+                font-size: 13pt;
+                margin-left: -0.5em;
+            }
+        }
+
+        .actions {
+            display: flex;
+            justify-content: end;
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+        }
+    }
+}
+
+@media (max-width: 1000px) and (orientation: portrait) {
+    .giveawayPanel{
+        .gradientSection{
+            display: none;
+        }
+
+        .contentSection {
+    
+            .subscribeForm {
+    
+                font-size: 10pt;
+          
+                .submit {
+                    font-size: 10pt;
+                    padding-left: 1em;
+                    padding-right: 1em;
+                }
+            }
+    
+            .actions {
+                display: flex;
+                justify-content: end;
+                margin-top: 1em;
+                margin-bottom: 0.5em;
+            }
+        }
+    }
+}

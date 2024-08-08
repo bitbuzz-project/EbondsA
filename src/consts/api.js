@@ -1,0 +1,2 @@
+export const API_LINK = 'https://api.geckoterminal.com/api/v2/networks/arbitrum/pools/0x52f9558bb321acd5ed07dad6b4ec9677752f1335/trades'
+export const LAST_TRADE = 'https://api.geckoterminal.com/api/v2/networks/arbitrum/pools/0x67ac5588bbfbcf0ffe2e24608d9b4e7102345835/trades'

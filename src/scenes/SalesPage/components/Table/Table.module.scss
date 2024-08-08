@@ -1,0 +1,117 @@
+.Table{
+    overflow-x: auto;
+    background: #FFFFFF;
+    box-shadow: 0px -2px 16px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    margin-top: 8px;
+
+    .line{
+       
+    }
+}
+
+.controlButton{
+    display: flex;
+    align-items: flex-end;
+    .gradientOrderButton{
+        height: 48px;
+        margin-right: 1em;
+        height: fit-content;
+        width: fit-content;
+        min-width: 136px;
+        padding: 1.5px;
+        background: linear-gradient(180deg, #0AA7F5 0%, #3CE7FF 100%);
+        border-radius: 5px;
+        .orderButton{
+            display: flex;
+            align-items: center;
+            border-radius: 4px;
+            background-color: white;
+           
+
+            .textValues{
+                margin: 0 4em 0 1em;
+                .text{
+                    color: #0AA7F5;
+                    font-size: 10pt;
+                }
+                .order{
+                    color: #0AA7F5;
+                    font-weight: 600;
+                }
+            }
+            
+        }
+    }
+}
+
+@media (max-width: 1440px){
+    .controlButton{
+        margin-bottom: 0;
+
+        .gradientOrderButton{
+            height: 28px;
+            padding: 1px;
+            .orderButton{
+
+                border-radius: 4px;
+                .textValues{
+                    margin: 0 2em 0 0.5em;
+                    
+                    .text{
+                        font-size: 6pt;
+                    }
+
+                    .order{
+                        font-size: 9pt;
+                    }
+                }
+                
+                .arrow{
+                    height: 28px;
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 1000px) and (orientation: portrait) {
+    .controlButton{
+        flex-wrap: wrap;
+        width: 91%;
+        justify-content: space-between;
+
+    }
+}
+
+@media (min-width: 1500px){
+    
+        .controlButton{
+            margin-bottom: 0;
+    
+            .gradientOrderButton{
+                height: 48px;
+                padding: 2px;
+                .orderButton{
+    
+                    border-radius: 4px;
+                    .textValues{
+                        margin: 0 2em 0 0.5em;
+                        
+                        .text{
+                            font-size: 10pt;
+                        }
+    
+                        .order{
+                            font-size: 12pt;
+                        }
+                    }
+                    
+                    .arrow{
+                        height: 48px;
+                    }
+                }
+            }
+        }
+    
+}

@@ -1,0 +1,80 @@
+.Footer {
+    background-color: #131415;
+    position: absolute;
+    display: flex;
+    left: 0;
+    right: 0;
+    flex-direction: row;
+    justify-content: center;
+
+    .footerButton {
+      padding: 6px 16px;
+      font-family: 'Space Grotesk';
+      background-color: #c8c9c93b;
+      color: #ffffff;             // Adjust the text color as needed
+      border: none;
+      border-radius: 30px;
+      margin-left: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background-color 0.3s ease;  // Add a smooth transition effect
+      margin-bottom: 10px;
+      &:hover {
+        background-color: #b8b8b848;  // Change the background color on hover
+      }
+    
+      &:focus {
+        outline: none;
+      }
+
+      .buttonContent {
+        display: flex;
+        align-items: center;
+      }
+    
+      svg {
+        margin-right: 10px; // Adjust the margin as needed to create space between the SVG and the text
+      }
+    }
+    .container {
+      max-width: 1440px;
+      width: 100%;
+      margin-left: 5vw;
+      margin-right: 5vw;
+    }
+  
+    .linkContainer {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1.5em; /* Add spacing between links and MediaLinks */
+    }
+  
+    .footerLink {
+      color: #ffffff; /* Add your preferred link color */
+      margin: 0 20px; /* Adjust spacing between links */
+      margin-top: 30px;
+      text-decoration: none;
+    }
+  
+    .separator {
+      height: 0;
+      border-top: 1px solid #333436;
+      margin-bottom: 1.5em;
+    }
+  
+    .mediaLinksContainer {
+      display: flex;
+      justify-content: center;
+    }
+  
+    padding-bottom: 8vh;
+  }
+  
+  @media (max-width: 1440px) {
+    .Footer {
+      .container {
+        max-width: 75vw;
+      }
+    }
+  }
+  

@@ -1,0 +1,1 @@
+export const RpcProvider = "https://arb1.arbitrum.io/rpc";

@@ -1,0 +1,40 @@
+.SocialsDropdown{
+    position: relative;
+
+    .dropdownMenu {
+        color: white;
+        background: #348ff6;
+        border-radius: 8px;
+        position: absolute;
+        top: 3.5em;
+        left: 0;
+        width: 15em;
+        box-shadow: 0 1px 8px rgba(255, 255, 255, 0.104);
+
+        transform: translateY(-20px);
+        transition: opacity 0.4s ease, transform 0.4s ease, visibility 0.4s;
+        padding-left: 0em;
+        padding-right: 0em;
+        padding-top: 0.5em;
+        padding-bottom: 0.5em;
+
+        li{
+            display: flex;
+            align-items: center;
+            padding-top: 0.45em;
+            padding-bottom: 0.45em;
+            padding-left: 1em;
+            font-family: 'Cabin';
+            font-size: 12pt;
+            transition: all 0.25s ease-in-out;
+
+            .icon{
+                margin-right: 0.5em;
+                font-size: 1.3em;
+            }
+        }
+        li:hover{
+            background-color: rgba(255, 255, 255, 0.136);
+        }
+    }
+}
