@@ -20,21 +20,21 @@ export function deleteMediaDetail(id){
 
 export async function fetchUSDTPrice() {
   try {
-      const response = await axios.get(API_LINK);
-      const data = response.data.data;
+    const response = await axios.get(API_LINK);
+    const data = response.data.data;
 
-      if (data.length === 0) {
-          throw new Error('No trade data available');
-      }
+    if (!data || !data.attributes) {
+        throw new Error('No data available');
+    }
 
-      // Access the 'price_to_in_usd' value from the first trade object
-      const priceToInUsd = data[0].attributes.price_from_in_usd;
-      const roundedPrice = Number(priceToInUsd).toFixed(4); // Limit decimals to four
-      return roundedPrice;
-  } catch (error) {
-      console.error('Error fetching USDT price:', error);
-      throw error;
-  }
+    // Access the 'base_token_price_usd' value
+    const baseTokenPriceUsd = data.attributes.base_token_price_usd;
+    const roundedPrice = Number(baseTokenPriceUsd).toFixed(4); // Limit decimals to four
+    return roundedPrice;
+} catch (error) {
+    console.error('Error fetching EB price:', error);
+    throw error;
+}
 }
 
   export async function fetchLast5Prices() {
