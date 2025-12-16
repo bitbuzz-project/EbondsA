@@ -1,31 +1,38 @@
-import React from 'react'
-import classes from './BaseLayout.module.scss'
-import Header from '../Header/Header.js'
-import { Footer } from '../Footer/Footer'
-import { Blockpass } from '../Header/Blockpass'
-class BaseLayout extends React.Component {
-    constructor(props) {
-        super(props)
-        this.state = {
+import React from 'react';
+import { Box, Container } from '@mui/material';
+import Header from '../Header/Header';
+import Footer from '../Footer/Footer'; // <--- FIXED: Removed curly braces { }
 
-        }
-    }
+const BaseLayout = ({ children }) => {
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh', 
+        bgcolor: 'background.default',
+      }}
+    >
+      <Header />
+      
+      {/* Main Content Area */}
+      <Container
+        maxWidth="xl" 
+        component="main"
+        sx={{
+          flexGrow: 1, 
+          py: 4, 
+          mt: { xs: 8, md: 10 },
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
+        {children}
+      </Container>
 
+      <Footer />
+    </Box>
+  );
+};
 
-    render() {
-        return (
-            <>
-                {/* <Blockpass /> */}
-                <div className={classes.BaseLayout}>
-                    <Header />
-                    <div className={classes.content}>
-                        {this.props.children}
-                    </div>
-                    <Footer />
-                </div>
-            </>
-        )
-    }
-}
-
-export default BaseLayout
+export default BaseLayout;

@@ -1,166 +1,54 @@
-import React from "react";
-import classes from "./Table.module.scss"
-import { TableHeader } from "./components/TableHeader/TableHeader";
-import { TableRow } from "./components/TableRow/TableRow";
-import Img from './test_img.svg'
-import { Button } from "./components/ControlButton/ControlButton";
-import FilteButton from '../../../../resources/filter_button.svg'
+import React, { useEffect, useState } from "react";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow, 
+  Paper, 
+  Chip,
+  Typography
+} from '@mui/material';
 
-import { useDispatch, useSelector } from 'react-redux';
+const SalesTable = () => {
+    // Mock Data for past EBONDS rounds
+    const history = [
+        { id: 1, round: 'Seed Round', date: 'Jan 2024', price: 0.02, raised: 250000, status: 'Completed' },
+        { id: 2, round: 'Private A', date: 'Mar 2024', price: 0.035, raised: 500000, status: 'Completed' },
+        { id: 3, round: 'Community Early', date: 'May 2024', price: 0.045, raised: 1000000, status: 'Sold Out' },
+    ];
 
-import { getIdos } from './API/idos';
-import { useEffect, useState } from "react";
-
-import { setToUpdate } from '../../../../features/adminPageSlice';
-import { useNavigate } from "react-router-dom";
-
-const UpcomingTable = ({ upcoming, ongoing }) => {
-    const [idos, setIDOs] = useState([]);
-    const [activeType, setActiveType] = useState(-1);
-    const [sorting, setSorting] = useState(1);
-    const [rotateRate, setRotateRate] = useState(0);
-
-    const dispatch = useDispatch();
-
-    const navigate = useNavigate();
-
-    const toUpdate = useSelector(state => state.adminPage.toUpdate);
-
-    const parseIdo = (img, symbol, name, idoPrice, currentPrice, ath, roi, partisipants, totalRaised, totalTokenSold, endAt, id) => {
-        return { img, symbol, name, idoPrice, currentPrice, ath, roi, partisipants, totalRaised, totalTokenSold, endAt, id }
-    }
-
-    useEffect(() => {
-        if (upcoming !== undefined) {
-            getIdos().then((response) => {
-                setIDOs(response.data.upcoming.map(e => {
-                    return parseIdo(e.logo_url, e.token.symbol, e.token.name, parseFloat(e.token.token_price_in_usd), parseFloat(e.token.current_token_price), parseFloat(e.token.all_time_high), parseFloat(e.token.current_token_price) / parseFloat(e.token.all_time_high), e.number_of_participants, e.token.total_raise, e.token.total_tokens_sold, e.timeline.sale_end, e.id)
-                }));
-            })
-
-        }
-        else {
-            getIdos().then((response) => {
-                setIDOs(response.data.ended.map(e => {
-                    return parseIdo(e.logo_url, e.token.symbol, e.token.name, parseFloat(e.token.token_price_in_usd), parseFloat(e.token.current_token_price), parseFloat(e.token.all_time_high), parseFloat(e.token.current_token_price) / parseFloat(e.token.all_time_high), e.number_of_participants, e.token.total_raise, e.token.total_tokens_sold, e.timeline.sale_end, e.id)
-                }));
-            })
-
-        }
-    }, []);
-
-    useEffect(() => {
-        if (!toUpdate)
-            return;
-
-        if (upcoming !== undefined) {
-            getIdos().then((response) => {
-                setIDOs(response.data.upcoming.map(e => {
-                    return parseIdo(e.logo_url, e.token.symbol, e.token.name, parseFloat(e.token.token_price_in_usd), parseFloat(e.token.current_token_price), parseFloat(e.token.all_time_high), parseFloat(e.token.current_token_price) / parseFloat(e.token.all_time_high), e.number_of_participants, e.token.total_raise, e.token.total_tokens_sold, e.timeline.sale_end, e.id)
-                }));
-            })
-            dispatch(setToUpdate(false));
-        }
-        else {
-            getIdos().then((response) => {
-                setIDOs(response.data.ended.map(e => {
-                    return parseIdo(e.logo_url, e.token.symbol, e.token.name, parseFloat(e.token.token_price_in_usd), parseFloat(e.token.current_token_price), parseFloat(e.token.all_time_high), parseFloat(e.token.current_token_price) / parseFloat(e.token.all_time_high), e.number_of_participants, e.token.total_raise, e.token.total_tokens_sold, e.timeline.sale_end, e.id)
-                }));
-            })
-            dispatch(setToUpdate(false));
-        }
-
-
-
-    }, [toUpdate]);
-
-    useEffect(() => {
-        switch (activeType) {
-            case 0:
-                setIDOs([...idos].sort((a, b) => sorting * (a.endAt - b.endAt)))
-                break;
-
-            case 1:
-                setIDOs([...idos].sort((a, b) => sorting * (a.roi - b.roi)))
-                break;
-
-            case 2:
-                setIDOs([...idos].sort((a, b) => sorting * (a.totalRaised - b.totalRaised)))
-                break;
-        }
-    }, [sorting]);
-
-    return (<>
-        <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between" }}>
-            <div className={classes.controlButton}>
-                <div className={classes.gradientOrderButton}>
-                    <div className={classes.orderButton}>
-                        <img
-                            style={{ transform: `rotate(${rotateRate}deg)` }}
-                            onClick={(ev) => {
-                                setRotateRate(rotateRate === 0 ? 180 : 0)
-                                setSorting(-1 * sorting);
-                            }}
-                            alt=""
-                            src={FilteButton}
-                            className={classes.arrow}
-                        />
-                        <div className={classes.textValues}>
-                            <div className={classes.text}>Sort by</div>
-                            <div className={classes.order}>{sorting == 1 ? 'Descending' : 'Ascending'}</div>
-                        </div>
-                    </div>
-                </div>
-                {ongoing === undefined && <>
-                    <Button
-                        isActive={activeType === 0 ? true : false}
-                        text="Sale Ended At"
-                        
-                        onClick={
-                            (ev) => {
-                                setActiveType(0);
-                                setIDOs(idos.sort((a, b) => sorting * (a.endAt - b.endAt)));
-                            }
-                        }
-                    />
-
-                    <Button
-                        isActive={activeType === 1 ? true : false}
-                        text="ATH IDO ROI"
-                        
-                        onClick={
-                            (ev) => {
-                                setActiveType(1);
-                                setIDOs(idos.sort((a, b) => sorting * (a.roi - b.roi)));
-                            }}
-                    />
-
-                    <Button
-                    
-                        isActive={activeType === 2 ? true : false}
-                        text="Total Raised"
-                        
-                        onClick={
-                            (ev) => {
-                                setActiveType(2);
-                                setIDOs(idos.sort((a, b) => sorting * (a.totalRaised - b.totalRaised)));
-                            }
-                        }
-                    /> </>}
-            </div>
-
-        </div>
-        <div className={classes.Table}>
-            <TableHeader ongoing={ongoing}/>
-            <div className={classes.line} />
-            {
-                idos.map((ido, index) => {
-                    ido.color = index % 2 ? "linear-gradient(rgb(10, 167, 245, 0.1) 0%, rgb(60, 231, 255, 0.1) 100%)" : "#FFFFFF"
-                    return TableRow(ido, ongoing, navigate)
-                })
-            }
-        </div>
-    </>);
+    return (
+        <TableContainer component={Paper} sx={{ borderRadius: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+            <Table>
+                <TableHead sx={{ bgcolor: 'background.default' }}>
+                    <TableRow>
+                        <TableCell>Round Name</TableCell>
+                        <TableCell align="right">Date</TableCell>
+                        <TableCell align="right">Sale Price</TableCell>
+                        <TableCell align="right">Total Raised</TableCell>
+                        <TableCell align="right">Status</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {history.map((row) => (
+                        <TableRow key={row.id} hover>
+                            <TableCell component="th" scope="row">
+                                <Typography fontWeight={700}>{row.round}</Typography>
+                            </TableCell>
+                            <TableCell align="right" color="text.secondary">{row.date}</TableCell>
+                            <TableCell align="right">${row.price}</TableCell>
+                            <TableCell align="right">${row.raised.toLocaleString()}</TableCell>
+                            <TableCell align="right">
+                                <Chip label={row.status} size="small" color={row.status === 'Completed' ? 'default' : 'success'} variant="outlined" />
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </TableContainer>
+    );
 }
 
-export default UpcomingTable;
+export default SalesTable;

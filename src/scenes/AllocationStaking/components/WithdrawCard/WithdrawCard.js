@@ -1,300 +1,165 @@
-import { useState, useRef, useEffect } from 'react';
-import WithdrawIcon from './images/WithdrawIcon.svg'
-import classes from './WithdrawCard.module.scss'
-import { abi, stakingContractAddress } from './../../services/consts'
-import { ethers, BigNumber, providers } from 'ethers';
-import Slider from '@mui/material/Slider';
-import { styled } from '@mui/material/styles';
+import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { ethers } from 'ethers';
 import { toast } from 'react-toastify';
-import { tokenContractAddress, abi as tokenAbi } from './../StakeCard/services/consts';
-import { setBalance, setDecimal, selectAddress } from './../../../../features/userWalletSlice'
-import { RpcProvider } from '../../../../consts/rpc';
-import WalletConnectProvider from "@walletconnect/ethereum-provider";
+import { 
+  Box, 
+  Card, 
+  CardContent, 
+  Typography, 
+  TextField, 
+  Button, 
+  InputAdornment,
+  Stack,
+  Divider,
+  Chip
+} from '@mui/material';
+import PaidIcon from '@mui/icons-material/Paid';
 
+import { abi, stakingContractAddress } from './../../services/consts';
+import { abi as tokenAbi, tokenContractAddress } from './../StakeCard/services/consts';
+import { setBalance } from './../../../../features/userWalletSlice';
+import { selectAddress } from './../../../../features/userWalletSlice';
 
-const iOSBoxShadow = '0 3px 1px rgba(0,0,0,0.1),0 4px 8px rgba(0,0,0,0.13),0 0 0 1px rgba(0,0,0,0.02)';
+const WithdrawCard = ({ update }) => {
+    const dispatch = useDispatch();
+    const [amount, setAmount] = useState('');
+    const [loading, setLoading] = useState(false);
 
+    // Redux
+    // Note: ensure your stakingSlice is providing 'balance' correctly as raw uint or formatted. 
+    // Based on previous code, it seemed raw.
+    const stakedRaw = useSelector(state => state.staking.balance); 
+    const decimals = useSelector(state => state.userWallet.decimal);
+    const walletAddress = useSelector(selectAddress);
 
-const IOSSlider = styled(Slider)(({ theme }) => ({
-  color: theme.palette.mode === 'dark' ? '#0AA7F5' : '#0AA7F5',
-  height: 6,
-  padding: '15px 0',
+    const stakedFormatted = stakedRaw / Math.pow(10, decimals);
 
-  '& .MuiSlider-thumb': {
-    backgroundColor: '#0AA7F5',
-    border: '3px solid white',
-    boxShadow: iOSBoxShadow,
-    '&:focus, &:hover, &.Mui-active': {
-      boxShadow:
-        '0 3px 1px rgba(0,0,0,0.1),0 4px 8px rgba(0,0,0,0.3),0 0 0 1px rgba(0,0,0,0.02)',
-      // Reset on touch devices, it doesn't add specificity
-      '@media (hover: none)': {
-        boxShadow: iOSBoxShadow,
-      },
-    },
-  },
+    const handleAction = async (isClaimOnly = false) => {
+        setLoading(true);
+        try {
+            const { ethereum } = window;
+            if (!ethereum) throw new Error("No wallet found");
 
-  '& .MuiSlider-valueLabel': {
-    fontSize: 12,
-    fontWeight: '600',
-    top: 41,
-    backgroundColor: 'unset',
-    color: theme.palette.text.primary,
-    '&:before': {
-      display: 'none',
-    },
-    '& *': {
-      background: 'transparent',
-      color: theme.palette.mode === 'dark' ? '#fff' : '#000',
-    },
-  },
-  '& .MuiSlider-track': {
-    border: 'none',
-    height: 6
-  },
-  '& .MuiSlider-rail': {
-    opacity: 0.5,
-    backgroundColor: '#bfbfbf',
-  },
-  '& .MuiSlider-mark': {
-    backgroundColor: '#bfbfbf',
-    height: 10,
-    width: 0,
-    '&.MuiSlider-markActive': {
-      opacity: 0.8,
-      backgroundColor: 'currentColor',
-    },
-  },
-}));
+            const provider = new ethers.providers.Web3Provider(ethereum);
+            const signer = provider.getSigner();
+            const contract = new ethers.Contract(stakingContractAddress, abi, signer);
 
-
-const WithdrawCard = ({ price, decimals, update }) => {
-  const [amount, setAmount] = useState(0);
-  const [fee, setFee] = useState(0);
-  let contract;
-  const balance = useSelector(state => state.staking.balance);
-  const walletAddress = useSelector(state => state.userWallet.address);
-
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    if (amount !== 0 && !isNaN(amount)) {
-      const { ethereum } = window;
-      if (ethereum) {
-        const provider = new ethers.providers.Web3Provider(ethereum);
-        const signer = provider.getSigner();
-        let scontract = new ethers.Contract(stakingContractAddress, abi, signer);
-        scontract.getWithdrawFee(walletAddress, BigNumber.from(Math.round(amount * 100)).mul(BigNumber.from(10).pow(decimals - 2))).then((response) => {
-          setFee(parseFloat(response.toString()));
-          console.log(response);
-        })
-      }
-    }
-  }, [amount])
-
-  const updateBalance = async () => {
-    const { ethereum } = window;
-    if (ethereum) {
-      const provider = new ethers.providers.Web3Provider(ethereum)
-      const signer = provider.getSigner();
-      let contract = new ethers.Contract(tokenContractAddress, tokenAbi, signer);
-      let tdecimals = await contract.decimals();
-      let tbalance = await contract.balanceOf(walletAddress);
-      dispatch(setDecimal(tdecimals));
-      dispatch(setBalance(parseInt(tbalance.toString())));
-
-    }else if(walletAddress){
-      const providerr = new WalletConnectProvider({
-        rpc: {
-          42161: RpcProvider
-        },
-      });
-
-      const web3Provider = new providers.Web3Provider(providerr);
-      const signer = web3Provider.getSigner();
-
-      let contract = new ethers.Contract(tokenContractAddress, tokenAbi, signer);
-      let tdecimals = await contract.decimals();
-      let tbalance = await contract.balanceOf(walletAddress);
-      dispatch(setDecimal(tdecimals));
-      dispatch(setBalance(parseInt(tbalance.toString())));
-
-    }
-  }
-
-  const withdrawFunction = async () => {
-    const { ethereum } = window;
-
-    if (ethereum) {
-      const provider = new ethers.providers.Web3Provider(ethereum)
-      const signer = provider.getSigner();
-      contract = new ethers.Contract(stakingContractAddress, abi, signer);
-
-      let bigAmount = BigNumber.from(Math.round(amount * 100)).mul(BigNumber.from(10).pow(decimals - 2));
-
-      const res = await contract.withdraw(bigAmount);
-      const transaction = res.wait().then(async () => {
-
-        const promise = new Promise(async (resolve, reject) => {
-          setAmount(0);
-          await update();
-          await updateBalance();
-          resolve(1);
-        })
-
-        toast.promise(
-          promise,
-          {
-            pending: 'Updating information, please wait...',
-            success: {
-              render() {
-                return "Data updated"
-              },
-              autoClose: 1
+            let tx;
+            if (isClaimOnly) {
+                // Withdraw 0 to just harvest rewards
+                tx = await contract.withdraw(0);
+                await toast.promise(tx.wait(), {
+                    pending: 'Claiming Rewards...',
+                    success: 'Rewards Claimed!',
+                    error: 'Claim failed'
+                });
+            } else {
+                // Withdraw Stake
+                if (!amount || parseFloat(amount) <= 0) throw new Error("Invalid amount");
+                const bigAmount = ethers.utils.parseUnits(amount.toString(), decimals);
+                tx = await contract.withdraw(bigAmount);
+                await toast.promise(tx.wait(), {
+                    pending: 'Unstaking...',
+                    success: 'Unstaked successfully!',
+                    error: 'Unstaking failed'
+                });
+                setAmount('');
             }
-          }
-        );
 
-      });
+            // Update Data
+            await update();
+            
+            // Update Token Balance
+            const tokenContract = new ethers.Contract(tokenContractAddress, tokenAbi, signer);
+            const tbalance = await tokenContract.balanceOf(walletAddress);
+            dispatch(setBalance(parseInt(tbalance.toString())));
 
-      toast.promise(
-        transaction,
-        {
-          pending: 'Transaction pending',
-          success: 'Withdraw request completed',
-          error: 'Transaction failed'
+        } catch (error) {
+            console.error(error);
+            toast.error(error.message || "Transaction failed");
+        } finally {
+            setLoading(false);
         }
-      )
-    }else if(walletAddress){
-      const providerr = new WalletConnectProvider({
-        rpc: {
-          42161: RpcProvider
-        },
-      });
+    };
 
-      const web3Provider = new providers.Web3Provider(providerr);
-      const signer = web3Provider.getSigner();
-      contract = new ethers.Contract(stakingContractAddress, abi, signer);
+    return (
+        <Card sx={{ height: '100%', borderRadius: 4, boxShadow: '0 8px 30px rgba(0,0,0,0.04)' }}>
+            <CardContent sx={{ p: 4 }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+                     <Typography variant="h5" fontWeight={700}>
+                        Manage Stake
+                    </Typography>
+                    <Chip icon={<PaidIcon />} label="Rewards" color="secondary" size="small" />
+                </Stack>
+               
+                <Typography variant="body2" color="text.secondary" mb={3}>
+                    Unstake your EBONDS or claim your accumulated ESIR rewards.
+                </Typography>
 
-      let bigAmount = BigNumber.from(Math.round(amount * 100)).mul(BigNumber.from(10).pow(decimals - 2));
+                {/* Withdraw Input */}
+                <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: 2, mb: 3 }}>
+                    <Stack direction="row" justifyContent="space-between" mb={1}>
+                        <Typography variant="caption" color="text.secondary">Amount to Unstake</Typography>
+                        <Typography variant="caption" fontWeight={600}>
+                            {stakedFormatted.toFixed(2)} Staked
+                        </Typography>
+                    </Stack>
+                    
+                    <TextField
+                        fullWidth
+                        variant="standard"
+                        placeholder="0.00"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        InputProps={{
+                            disableUnderline: true,
+                            sx: { fontSize: '1.5rem', fontWeight: 700 },
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <Button 
+                                        onClick={() => setAmount(stakedFormatted.toString())} 
+                                        size="small" 
+                                        sx={{ borderRadius: 20, fontWeight: 700 }}
+                                    >
+                                        MAX
+                                    </Button>
+                                </InputAdornment>
+                            )
+                        }}
+                    />
+                </Box>
 
-      const res = await contract.withdraw(bigAmount);
-      const transaction = res.wait().then(async () => {
+                <Stack spacing={2}>
+                    <Button
+                        fullWidth
+                        variant="outlined"
+                        size="large"
+                        disabled={loading || !walletAddress}
+                        onClick={() => handleAction(false)}
+                        sx={{ borderRadius: 3, fontWeight: 700, borderWidth: 2 }}
+                    >
+                        Unstake EBONDS
+                    </Button>
+                    
+                    <Divider>OR</Divider>
 
-        const promise = new Promise(async (resolve, reject) => {
-          setAmount(0);
-          await update();
-          await updateBalance();
-          resolve(1);
-        })
+                    <Button
+                        fullWidth
+                        variant="contained"
+                        color="secondary"
+                        size="large"
+                        disabled={loading || !walletAddress}
+                        onClick={() => handleAction(true)}
+                        sx={{ borderRadius: 3, fontWeight: 700, boxShadow: 'none' }}
+                    >
+                        Claim Rewards Only
+                    </Button>
+                </Stack>
 
-        toast.promise(
-          promise,
-          {
-            pending: 'Updating information, please wait...',
-            success: {
-              render() {
-                return "Data updated"
-              },
-              autoClose: 1
-            }
-          }
-        );
-
-      });
-
-      toast.promise(
-        transaction,
-        {
-          pending: 'Transaction pending',
-          success: 'Withdraw request completed',
-          error: 'Transaction failed'
-        }
-      )
-    }
-  }
-
-  const harverstFucntion = async () => {
-    const { ethereum } = window;
-    if (ethereum) {
-      const provider = new ethers.providers.Web3Provider(ethereum)
-      const signer = provider.getSigner();
-      contract = new ethers.Contract(stakingContractAddress, abi, signer);
-      await contract.withdraw(0);
-    } else if (walletAddress) {
-      const providerr = new WalletConnectProvider({
-        rpc: {
-          42161: RpcProvider
-        },
-      });
-
-      const web3Provider = new providers.Web3Provider(providerr);
-      const signer = web3Provider.getSigner();
-      contract = new ethers.Contract(stakingContractAddress, abi, signer);
-      await contract.withdraw(0);
-    }
-  }
-
-  return (<div className={classes.withdrawCard}>
-
-
-    <div className={classes.cardContent}>
-      <div className={classes.cardHeader}>
-        {/* <img className={classes.headerIcon} src={WithdrawIcon} /> */}
-        <div className={classes.headerText}>
-          Unstake EBONDS
-        </div>
-      </div>
-
-      <div className={classes.input}>
-        <div className={classes.inputHeader}>
-          <div className={classes.headerBalance}> Balance: <b>{(balance / Math.pow(10, decimals)).toFixed(2)}</b> (~${((balance*(price) / Math.pow(10, decimals))).toFixed(2)})</div>
-          <button className={classes.headerMax} onClick={() => setAmount((balance / Math.pow(10, decimals)))}>MAX</button>
-        </div>
-        <div className={classes.inputFields}>
-          <input type="number" value={amount} className={classes.inputField} min={0} max={balance / Math.pow(10, decimals)} onChange={(e) => {
-            setAmount(parseFloat(e.target.value));
-          }} />
-          {/* <input className={classes.inputFieldPostpend} type="text" value={"EBONDS"} disabled /> */}
-        </div>
-        {amount > 0 && <div className={classes.fee}>
-          <p>Fee: {(fee / Math.pow(10, decimals)).toFixed(4)} EBONDS</p>
-        </div>}
-
-        {/* <IOSSlider
-          valueLabelDisplay="on"
-          className={classes.percentSlider}
-          value={Math.round(amount / (balance / Math.pow(10, decimals)) * 100)}
-          aria-label="Default"
-          onChange={(e, value) => {
-            setAmount(parseFloat(((balance / Math.pow(10, decimals)) / 100 * value).toFixed(2)))
-          }}
-          marks={[{ value: 0 }, { value: 100 }]}
-          valueLabelFormat={(value) => isNaN(value) ? '' : value + '%'}
-        /> */}
-      </div>
-
-
-
-      <div className={classes.confirmationButton}>
-      <button className={classes.withdrawButton} 
-       onClick={() => {
-        
-        if (amount === 0) {
-          toast.error("Amount must be greater than zero.");
-        } else if(amount > balance / Math.pow(10, decimals)) {
-            toast.error("You have insufficient EBONDS");
-        }else {
-          withdrawFunction(); 
-        }
-      }}
-      
-      > Withdraw EBONDS</button>
-        <button className={classes.harvestButton} onClick={harverstFucntion}><div className={classes.whiter}><span className={classes.gradientText}>Claim rewards</span></div></button>
-      </div>
-    </div>
-  </div>);
+            </CardContent>
+        </Card>
+    );
 }
 
 export default WithdrawCard;

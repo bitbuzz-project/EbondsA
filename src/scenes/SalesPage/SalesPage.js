@@ -1,45 +1,67 @@
-import {useState} from 'react';
+import React, { useState } from 'react';
+import { Box, Container, Typography, Grid, Divider } from '@mui/material';
 import InfoPanel from './components/InfoPanel/InfoPanel';
-
-import Table from './components/Table/Table'
-import classes from './SalesPage.module.scss'
+import PresaleCard from './components/Presale/PresaleCard';
+import SalesTable from './components/Table/Table';
 
 const SalesPage = () => {
-    const [info, setInfo] = useState([
+    const [info] = useState([
         {
-            title: 'Fair and Equitable Fundraising',
-            text: 'Our unique staking and distribution methodology ensures broad participation.'
-        },
-
-        {
-            title: 'Vesting and Distribution',
-            text: 'The first launchpad to allow holders to grow with the network, regardless of participation.'
+            title: 'Bonus & Vesting',
+            text: 'Participants in this special round receive a % bonus in tokens, vested linearly to ensure long-term stability.'
         },
         {
-            title: 'Permissionless Listings',
-            text: 'Our emphasis on people and teams creates strong starts for new projects.'
+            title: 'Community First',
+            text: 'This round is exclusively for the EBONDS community, offering a lower entry price before public listing.'
+        },
+        {
+            title: 'Instant Allocation',
+            text: 'No lottery or whitelisting required. Allocations are guaranteed on a first-come, first-served basis.'
         }
     ]);
     
-    return (<div className={classes.salesPage}>
-        <h1 className={classes.pageHeader}>PEAKDEFI <br /> Launchpad Sales</h1>
-        <div>
-            <h1 className={classes.tableHeaders}>Ongoing sales</h1>
-            <Table upcoming={true} ongoing/>
-        </div>
-        
-        <div>
-            <h1 className={classes.tableHeaders}>Completed Sales</h1>
-            <Table></Table>
-        </div>
+    return (
+        <Box sx={{ pb: 8 }}>
+            <Container maxWidth="lg">
+                {/* Header */}
+                <Box sx={{ mb: 6, textAlign: 'center' }}>
+                    <Typography variant="h2" fontWeight={800} gutterBottom>
+                        EBONDS Token Sale
+                    </Typography>
+                    <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
+                        Participate in the exclusive community round. Secure your EBONDS allocation with bonus vesting terms.
+                    </Typography>
+                </Box>
 
-        <div className={classes.infoPanels}>
-            {
-                info.map(el=><InfoPanel content={el} key={el.title}/>)
-            }
-        </div>
-        
-    </div>);
+                {/* ACTIVE SALE SECTION */}
+                <Box sx={{ mb: 8 }}>
+                    <PresaleCard />
+                </Box>
+
+                {/* Info Cards */}
+                <Grid container spacing={3} sx={{ mb: 8 }}>
+                    {info.map((el) => (
+                        <Grid item xs={12} md={4} key={el.title}>
+                            <InfoPanel content={el} />
+                        </Grid>
+                    ))}
+                </Grid>
+                
+                <Divider sx={{ my: 6 }}>
+                    <Typography variant="caption" color="text.secondary">HISTORY</Typography>
+                </Divider>
+
+                {/* Past Rounds */}
+                <Box>
+                    <Typography variant="h5" fontWeight={700} gutterBottom sx={{ mb: 3 }}>
+                        Previous Rounds
+                    </Typography>
+                    <SalesTable /> 
+                </Box>
+                
+            </Container>
+        </Box>
+    );
 }
 
 export default SalesPage;

@@ -1,115 +1,80 @@
-import classes from './TierPage.module.scss'
+import React from 'react';
+import { Box, Container, Grid, Typography, Card, CardContent, Chip, Button } from '@mui/material';
+import StarIcon from '@mui/icons-material/Star';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
-import Soil from './resources/soil.svg';
-import Seed from './resources/seed.svg';
-import Sapling from './resources/sapling.svg';
-import Tree from './resources/tree.svg';
-import Oak from './resources/oak.svg';
-import { useState } from 'react';
+const tiers = [
+  { name: 'Seed', required: 1000, multiplier: '1x', color: '#718096', features: ['Basic Staking APY', 'Community Access'] },
+  { name: 'Sapling', required: 10000, multiplier: '1.5x', color: '#01C275', features: ['Boosted APY (+5%)', 'Voting Rights', 'Presale Priority'] },
+  { name: 'Tree', required: 50000, multiplier: '2x', color: '#2D3748', features: ['Max Staking APY', 'Exclusive Airdrops', 'Governance Council'] },
+  { name: 'Oak', required: 100000, multiplier: '3x', color: '#000000', features: ['VIP Support', 'Private Deals', 'Zero Fees'] },
+];
 
 const TierPage = () => {
+  return (
+    <Box sx={{ pb: 8 }}>
+      <Container maxWidth="xl">
+        <Box sx={{ textAlign: 'center', mb: 8 }}>
+          <Typography variant="h2" fontWeight={800} gutterBottom>
+            Membership Tiers
+          </Typography>
+          <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 700, mx: 'auto' }}>
+            Hold and stake EBONDS to unlock exclusive benefits. Higher tiers grant larger allocation bonuses and voting power.
+          </Typography>
+        </Box>
 
-    const [tiers, setTiers] = useState([
-        {
-            text: 'Tier 1',
-            image: Soil,
-            value: 10000,
-            pool_weight: 4
-        },
+        <Grid container spacing={4} justifyContent="center">
+          {tiers.map((tier) => (
+            <Grid item xs={12} sm={6} md={3} key={tier.name}>
+              <Card 
+                sx={{ 
+                  height: '100%', 
+                  borderRadius: 4, 
+                  position: 'relative', 
+                  transition: '0.3s',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  '&:hover': { transform: 'translateY(-10px)', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', borderColor: 'primary.main' }
+                }}
+              >
+                <Box sx={{ bgcolor: tier.color, height: 8, width: '100%' }} />
+                <CardContent sx={{ p: 4, textAlign: 'center' }}>
+                  <Typography variant="h5" fontWeight={800} gutterBottom>
+                    {tier.name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" mb={2}>
+                    Required Stake
+                  </Typography>
+                  <Typography variant="h4" fontWeight={700} color="primary.main" gutterBottom>
+                    {tier.required.toLocaleString()}+
+                  </Typography>
+                  <Chip label={`Multiplier: ${tier.multiplier}`} size="small" sx={{ mb: 3, fontWeight: 700 }} />
 
-        {
-            text: 'Tier 2',
-            image: Seed,
-            value: 50000,
-            pool_weight: 10
-        },
+                  <Box sx={{ textAlign: 'left', mb: 3 }}>
+                    {tier.features.map((feat) => (
+                        <Box key={feat} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                            <CheckCircleIcon color="success" sx={{ fontSize: 18 }} />
+                            <Typography variant="body2" fontWeight={600}>{feat}</Typography>
+                        </Box>
+                    ))}
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
 
-        {
-            text: 'Tier 3',
-            image: Sapling,
-            value: 100000,
-            pool_weight: 20
-        },
-
-        {
-            text: 'Tier 4',
-            image: Tree,
-            value: 250000,
-            pool_weight: 38
-        },
-
-        {
-            text: 'Tier 5',
-            image: Oak,
-            value: 1000000, 
-            pool_weight: 70 
-        }
-    ])
-
-    return (<div className={classes.TierPage}>
-        <header>
-            <h1>Tier system</h1>
-            <p>5 tier levels with guaranteed token allocations</p>
-        </header>
-        <main>
-
-            <section>
-                <p>
-                    As we at PEAKDEFI Launchpad stand for fair project launches, we 
-                    created a tier system that enables everyone to get the right portion 
-                    of each pools’ allocation.
-                </p>
-            </section>
-
-            <section>
-                <div className={classes.tierTableWrapper}>
-                    <div className={classes.tierTable}>
-                        <h1>Our Tier System</h1>
-                        <table>
-                            <tr>
-                                <th className={classes.picth}>Tier</th>
-                                <th>PEAK tokens staking amount</th>
-                                <th>Pool Weight</th>
-                            </tr>
-                            {
-                                tiers.map(tier => {
-                                    return (<tr>
-                                        <td className={classes.pictd}>
-                                            <div className={classes.tierName}>
-                                                <img src={tier.image} />
-                                                <p>{tier.text}</p>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            {tier.value}
-                                        </td>
-                                        <td>
-                                            {tier.pool_weight}
-                                        </td>
-                                    </tr>)
-                                })
-                            }
-                        </table>
-                    </div>
-                </div>
-
-
-                <p>
-                    Our tier system covers 5 different tiers in total. We have four (tier 1 to tier 4) 
-                    public sale tiers and one private sale tier (tier 5). The private sale tier offers 
-                    our investors a reduced token price, but also other vesting conditions compared to 
-                    the public sales tiers. 
-                </p>
-                <p>
-                    Once an IDO pool is opened, the pool stays open until all tickets are sold out 
-                    or the pool reaches the time limit. If an allocation gets not sold out, the remaining 
-                    tokens will be split between all other tiers according to their pool weights. 
-                </p>
-            </section>
-
-
-        </main>
-    </div>);
-}
+        <Box sx={{ textAlign: 'center', mt: 8, p: 6, bgcolor: 'background.paper', borderRadius: 4 }}>
+            <Typography variant="h4" fontWeight={700} gutterBottom>
+                Ready to level up?
+            </Typography>
+            <Button variant="contained" size="large" href="/allocation-staking" sx={{ borderRadius: 50, px: 4, py: 1.5, fontSize: '1.1rem' }}>
+                Go to Staking
+            </Button>
+        </Box>
+      </Container>
+    </Box>
+  );
+};
 
 export default TierPage;
