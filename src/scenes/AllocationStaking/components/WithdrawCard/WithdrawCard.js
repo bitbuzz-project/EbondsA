@@ -1,161 +1,223 @@
-import React, { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { ethers } from 'ethers';
 import { toast } from 'react-toastify';
 import { 
-  Box, 
-  Card, 
-  CardContent, 
-  Typography, 
-  TextField, 
-  Button, 
-  InputAdornment,
-  Stack,
-  Divider,
-  Chip
+  Box, Card, CardContent, Typography, TextField, Button, InputAdornment, Stack, Chip, Divider, LinearProgress
 } from '@mui/material';
-import PaidIcon from '@mui/icons-material/Paid';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import RedeemedIcon from '@mui/icons-material/Redeem';
 
 import { abi, stakingContractAddress } from './../../services/consts';
-import { abi as tokenAbi, tokenContractAddress } from './../StakeCard/services/consts';
-import { setBalance } from './../../../../features/userWalletSlice';
-import { selectAddress } from './../../../../features/userWalletSlice';
+import { RpcProvider } from '../../../../consts/rpc';
 
 const WithdrawCard = ({ update }) => {
-    const dispatch = useDispatch();
     const [amount, setAmount] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [loadingWithdraw, setLoadingWithdraw] = useState(false);
+    const [loadingClaim, setLoadingClaim] = useState(false);
+    
+    const [stakingInfo, setStakingInfo] = useState({
+        deposited: 0,
+        stakingStart: 0,
+        pendingRewards: 0
+    });
 
-    // Redux
-    // Note: ensure your stakingSlice is providing 'balance' correctly as raw uint or formatted. 
-    // Based on previous code, it seemed raw.
-    const stakedRaw = useSelector(state => state.staking.balance); 
+    const walletAddress = useSelector(state => state.userWallet.address);
     const decimals = useSelector(state => state.userWallet.decimal);
-    const walletAddress = useSelector(selectAddress);
 
-    const stakedFormatted = stakedRaw / Math.pow(10, decimals);
+    // --- Fetch User Data ---
+    useEffect(() => {
+        if (!walletAddress) return;
 
-    const handleAction = async (isClaimOnly = false) => {
-        setLoading(true);
+        const getData = async () => {
+            try {
+                const provider = new ethers.providers.JsonRpcProvider(RpcProvider);
+                const contract = new ethers.Contract(stakingContractAddress, abi, provider);
+                
+                const userInfo = await contract.userInfo(walletAddress);
+                const stakedAmount = parseFloat(ethers.utils.formatUnits(userInfo.amount, decimals));
+                const startTime = parseInt(userInfo.stakingStart.toString());
+
+                // Calculate Pending Rewards locally for UI (Approximation based on contract logic)
+                // Formula: amount * duration * 36.5% / 100
+                let pendingVal = 0;
+                if (stakedAmount > 0 && startTime > 0) {
+                    const timeElapsed = (Date.now() / 1000) - startTime;
+                    const secondsPerYear = 31556926;
+                    // 3650 basis points = 36.5%
+                    pendingVal = (stakedAmount * timeElapsed * 36.5) / 100 / secondsPerYear; 
+                }
+
+                setStakingInfo({
+                    deposited: stakedAmount,
+                    stakingStart: startTime,
+                    pendingRewards: pendingVal
+                });
+
+            } catch (error) {
+                console.error("Withdraw Data Error:", error);
+            }
+        };
+        getData();
+        // Refresh every 15s
+        const interval = setInterval(getData, 15000);
+        return () => clearInterval(interval);
+    }, [walletAddress, decimals, update]);
+
+    // --- Actions ---
+
+    const handleUnstake = async () => {
+        if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+            toast.error("Enter a valid amount to unstake");
+            return;
+        }
+        setLoadingWithdraw(true);
         try {
             const { ethereum } = window;
-            if (!ethereum) throw new Error("No wallet found");
-
             const provider = new ethers.providers.Web3Provider(ethereum);
             const signer = provider.getSigner();
             const contract = new ethers.Contract(stakingContractAddress, abi, signer);
 
-            let tx;
-            if (isClaimOnly) {
-                // Withdraw 0 to just harvest rewards
-                tx = await contract.withdraw(0);
-                await toast.promise(tx.wait(), {
-                    pending: 'Claiming Rewards...',
-                    success: 'Rewards Claimed!',
-                    error: 'Claim failed'
-                });
-            } else {
-                // Withdraw Stake
-                if (!amount || parseFloat(amount) <= 0) throw new Error("Invalid amount");
-                const bigAmount = ethers.utils.parseUnits(amount.toString(), decimals);
-                tx = await contract.withdraw(bigAmount);
-                await toast.promise(tx.wait(), {
-                    pending: 'Unstaking...',
-                    success: 'Unstaked successfully!',
-                    error: 'Unstaking failed'
-                });
-                setAmount('');
-            }
-
-            // Update Data
-            await update();
+            const amountWei = ethers.utils.parseUnits(amount.toString(), decimals);
+            const tx = await contract.withdraw(amountWei);
             
-            // Update Token Balance
-            const tokenContract = new ethers.Contract(tokenContractAddress, tokenAbi, signer);
-            const tbalance = await tokenContract.balanceOf(walletAddress);
-            dispatch(setBalance(parseInt(tbalance.toString())));
-
+            await toast.promise(tx.wait(), {
+                pending: 'Unstaking EBONDS...',
+                success: 'Unstaked successfully!',
+                error: 'Unstake failed'
+            });
+            
+            setAmount('');
+            if (update) update();
         } catch (error) {
             console.error(error);
-            toast.error(error.message || "Transaction failed");
+            toast.error(error?.data?.message || "Transaction failed");
         } finally {
-            setLoading(false);
+            setLoadingWithdraw(false);
         }
     };
+
+    const handleClaim = async () => {
+        setLoadingClaim(true);
+        try {
+            const { ethereum } = window;
+            const provider = new ethers.providers.Web3Provider(ethereum);
+            const signer = provider.getSigner();
+            const contract = new ethers.Contract(stakingContractAddress, abi, signer);
+
+            // Withdraw 0 triggers harvest() in your contract
+            const tx = await contract.withdraw(0); 
+            
+            await toast.promise(tx.wait(), {
+                pending: 'Claiming Rewards...',
+                success: 'Rewards Claimed!',
+                error: 'Claim failed'
+            });
+            
+            if (update) update();
+        } catch (error) {
+            console.error(error);
+            toast.error(error?.data?.message || "Transaction failed");
+        } finally {
+            setLoadingClaim(false);
+        }
+    };
+
+    const daysStaked = stakingInfo.stakingStart > 0 
+        ? Math.floor((Date.now() / 1000 - stakingInfo.stakingStart) / 86400) 
+        : 0;
 
     return (
         <Card sx={{ height: '100%', borderRadius: 4, boxShadow: '0 8px 30px rgba(0,0,0,0.04)' }}>
             <CardContent sx={{ p: 4 }}>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-                     <Typography variant="h5" fontWeight={700}>
-                        Manage Stake
-                    </Typography>
-                    <Chip icon={<PaidIcon />} label="Rewards" color="secondary" size="small" />
-                </Stack>
-               
+                <Typography variant="h5" fontWeight={700} gutterBottom>
+                    Withdraw & Claim
+                </Typography>
                 <Typography variant="body2" color="text.secondary" mb={3}>
-                    Unstake your EBONDS or claim your accumulated ESIR rewards.
+                    Unstake your EBONDS or claim your ESIR rewards.
                 </Typography>
 
-                {/* Withdraw Input */}
+                {/* Stats Box */}
                 <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: 2, mb: 3 }}>
                     <Stack direction="row" justifyContent="space-between" mb={1}>
-                        <Typography variant="caption" color="text.secondary">Amount to Unstake</Typography>
-                        <Typography variant="caption" fontWeight={600}>
-                            {stakedFormatted.toFixed(2)} Staked
+                        <Typography variant="caption" color="text.secondary">Staked Balance</Typography>
+                        <Typography variant="body2" fontWeight={700}>{stakingInfo.deposited.toLocaleString()} EBONDS</Typography>
+                    </Stack>
+                    <Stack direction="row" justifyContent="space-between" mb={1}>
+                        <Typography variant="caption" color="text.secondary">Pending Rewards</Typography>
+                        <Typography variant="body2" fontWeight={700} color="success.main">
+                            {stakingInfo.pendingRewards.toFixed(4)} ESIR
                         </Typography>
                     </Stack>
-                    
-                    <TextField
-                        fullWidth
-                        variant="standard"
-                        placeholder="0.00"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        InputProps={{
-                            disableUnderline: true,
-                            sx: { fontSize: '1.5rem', fontWeight: 700 },
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <Button 
-                                        onClick={() => setAmount(stakedFormatted.toString())} 
-                                        size="small" 
-                                        sx={{ borderRadius: 20, fontWeight: 700 }}
-                                    >
-                                        MAX
-                                    </Button>
-                                </InputAdornment>
-                            )
-                        }}
-                    />
+                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                        <Typography variant="caption" color="text.secondary">Time Staked</Typography>
+                        <Chip 
+                            icon={<AccessTimeIcon sx={{ fontSize: 14 }} />} 
+                            label={`${daysStaked} Days`} 
+                            size="small" 
+                            color={daysStaked < 14 ? "warning" : "success"} 
+                            variant="outlined" 
+                        />
+                    </Stack>
                 </Box>
 
+                {/* Unstake Input */}
+                <Typography variant="subtitle2" fontWeight={700} mb={1}>Unstake Amount</Typography>
+                <TextField
+                    fullWidth
+                    variant="outlined"
+                    placeholder="0.00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    InputProps={{
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <Button 
+                                    onClick={() => setAmount(stakingInfo.deposited)}
+                                    size="small"
+                                    sx={{ fontWeight: 700 }}
+                                >
+                                    MAX
+                                </Button>
+                            </InputAdornment>
+                        )
+                    }}
+                    sx={{ mb: 2 }}
+                />
+
+                {/* Action Buttons */}
                 <Stack spacing={2}>
                     <Button
                         fullWidth
                         variant="outlined"
+                        color="error"
                         size="large"
-                        disabled={loading || !walletAddress}
-                        onClick={() => handleAction(false)}
-                        sx={{ borderRadius: 3, fontWeight: 700, borderWidth: 2 }}
+                        disabled={!walletAddress || loadingWithdraw || stakingInfo.deposited <= 0}
+                        onClick={handleUnstake}
+                        sx={{ borderRadius: 3, py: 1.5, fontWeight: 700 }}
                     >
-                        Unstake EBONDS
+                        {loadingWithdraw ? 'Processing...' : 'Unstake EBONDS'}
                     </Button>
-                    
+
                     <Divider>OR</Divider>
 
                     <Button
                         fullWidth
                         variant="contained"
-                        color="secondary"
+                        color="success"
                         size="large"
-                        disabled={loading || !walletAddress}
-                        onClick={() => handleAction(true)}
-                        sx={{ borderRadius: 3, fontWeight: 700, boxShadow: 'none' }}
+                        startIcon={<RedeemedIcon />}
+                        disabled={!walletAddress || loadingClaim}
+                        onClick={handleClaim}
+                        sx={{ borderRadius: 3, py: 1.5, fontWeight: 700 }}
                     >
-                        Claim Rewards Only
+                        {loadingClaim ? 'Processing...' : 'Claim Rewards Only'}
                     </Button>
                 </Stack>
+                
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block', textAlign: 'center', opacity: 0.7 }}>
+                    *Claiming rewards resets your staking timer.
+                </Typography>
 
             </CardContent>
         </Card>
