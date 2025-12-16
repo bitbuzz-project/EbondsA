@@ -4,7 +4,7 @@ const theme = createTheme({
   palette: {
     mode: 'light', // We can switch to 'dark' easily later
     primary: {
-      main: '#01C275', // Your EBONDS Green
+      main: '#d29d5c', // Your EBONDS Green
       contrastText: '#ffffff',
     },
     secondary: {

@@ -1,5 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+
+
+
+
+
 import './index.css';
 
 import App from './App';
@@ -7,7 +12,9 @@ import * as serviceWorker from './serviceWorker';
 import configureStore from './store/configureStore';
 import { BrowserRouter } from 'react-router-dom';
 
-
+if (window.process === undefined) {
+  window.process = { env: {} };
+};
 ReactDOM.render(
     <BrowserRouter>
         <App/>

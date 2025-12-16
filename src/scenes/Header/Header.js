@@ -4,10 +4,6 @@ import {
   Box, 
   Toolbar, 
   IconButton, 
-  Typography, 
-  Menu, 
-  MenuItem, 
-  Container, 
   Button, 
   Drawer, 
   List, 
@@ -17,7 +13,6 @@ import {
   Chip
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 
 import { useWeb3React } from '@web3-react/core';
@@ -35,34 +30,35 @@ import Logo from '../../resources/logoheader.svg';
 import arbitrumLogo from '../../resources/arbitrum.svg';
 
 import AccountDialog from "./components/accountDialog/AccountDialog";
-import ErrorDialog from "../ErrorDialog/ErrorDialog";
+// import ErrorDialog from "../ErrorDialog/ErrorDialog"; <--- REMOVED
 
 const pages = [
   { name: 'Home', link: 'https://ebonds.finance/', external: true },
   { name: 'Dashboard', link: '/', external: false },
+  { name: 'Presale', link: '/sales', external: false }, 
   { name: 'Earn', link: '/allocation-staking', external: false },
   { name: 'Swap', link: '/swap', external: false },
   { name: 'Docs', link: 'https://medium.com/@EBONDS.Finance/ebonds-finance-whitepaper-69d5164235ea', external: true },
-  { name: 'Community', link: 'https://discord.com/invite/vM4YC6WxSd', external: true },
 ];
 
 const { ethereum } = window;
 
 const Header = () => {
-  const [anchorElNav, setAnchorElNav] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { activate, deactivate, account, error } = useWeb3React();
+  const { activate, deactivate, account } = useWeb3React();
   const [showDialog, setShowDialog] = useState(false);
-  const [errorDialog, setErrorDialog] = useState({ show: false, message: '' });
+  
+  // We no longer need local error state since we use toastify or inline errors now
+  // const [errorDialog, setErrorDialog] = useState({ show: false, message: '' }); 
 
   const navigate = useNavigate();
   const location = useLocation();
 
   // Redux Data
-  const balance = useSelector(state => state.userWallet.balance);
-  const decimals = useSelector(state => state.userWallet.decimal);
+  // const balance = useSelector(state => state.userWallet.balance);
+  // const decimals = useSelector(state => state.userWallet.decimal);
 
-  // --- Wallet Logic (Kept from your original file) ---
+  // --- Wallet Logic ---
   useEffect(() => {
     if (account) {
       store.dispatch(setAddress(account));
@@ -93,7 +89,7 @@ const Header = () => {
 
   useEffect(() => {
     activate(injected, (err) => console.log("Auto-connect non-critical error", err));
-  }, []);
+  }, [activate]);
 
   const handleConnect = () => {
     activate(injected);
@@ -115,7 +111,7 @@ const Header = () => {
   return (
     <>
       <AppBar position="fixed" color="inherit" elevation={0} sx={{ borderBottom: '1px solid', borderColor: 'divider', backdropFilter: 'blur(20px)', bgcolor: 'rgba(255,255,255,0.9)' }}>
-        <Container maxWidth="xl">
+        <Box maxWidth="xl" sx={{ mx: 'auto', width: '100%', px: 3 }}>
           <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
             
             {/* LOGO AREA */}
@@ -148,7 +144,7 @@ const Header = () => {
             {/* RIGHT SIDE ACTIONS */}
             <Stack direction="row" spacing={2} alignItems="center">
               
-              {/* Network Chip (Visual Only for now based on your old code) */}
+              {/* Network Chip */}
               <Chip 
                 icon={<img src={arbitrumLogo} alt="Arb" width={20} />} 
                 label="Arbitrum" 
@@ -162,7 +158,7 @@ const Header = () => {
                   variant="contained" 
                   color="primary" 
                   startIcon={<AccountBalanceWalletIcon />}
-                  onClick={handleConnect}
+                  onClick={() => setShowDialog(true)}
                   sx={{ borderRadius: 50, px: 3 }}
                 >
                   Connect Wallet
@@ -190,7 +186,7 @@ const Header = () => {
             </Stack>
 
           </Toolbar>
-        </Container>
+        </Box>
       </AppBar>
 
       {/* MOBILE DRAWER */}
@@ -217,7 +213,7 @@ const Header = () => {
       
       {/* DIALOGS */}
       <AccountDialog show={showDialog} setShow={setShowDialog} address={account} disconnect={deactivate} />
-      <ErrorDialog show={errorDialog.show} message={errorDialog.message} setError={setErrorDialog} />
+      {/* <ErrorDialog show={errorDialog.show} message={errorDialog.message} setError={setErrorDialog} /> */}
     </>
   );
 };

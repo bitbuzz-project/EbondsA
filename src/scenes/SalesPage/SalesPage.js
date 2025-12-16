@@ -29,7 +29,7 @@ const SalesPage = () => {
                         EBONDS Token Sale
                     </Typography>
                     <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
-                        Participate in the exclusive community round. Secure your EBONDS allocation with bonus vesting terms.
+                        Participate in the exclusive community round.
                     </Typography>
                 </Box>
 

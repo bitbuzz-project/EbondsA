@@ -11,7 +11,6 @@ import {
   Stack, 
   Chip,
   Avatar,
-  Divider,
   Button
 } from '@mui/material';
 
@@ -31,9 +30,7 @@ import TransactionHistory from "./components/TransactionHistory/Info";
 import CustomEBONDSChart from "./components/Transactionchart/Info"; 
 
 // --- Helper Components ---
-
 const PortfolioItem = ({ symbol, balance, price, iconColor }) => {
-  // Safe calculation: ensure values exist before math
   const safePrice = Number(price) || 0;
   const safeBalance = Number(balance) || 0;
   const usdValue = safeBalance * safePrice;
@@ -112,9 +109,10 @@ const MainScreen = () => {
 
   // --- Fetch Data ---
   useEffect(() => {
+    let isMounted = true; // <--- 1. Flag to track mount status
+
     const init = async () => {
       try {
-        // 1. Fetch Prices with safety check
         let esirP = 0;
         let ebondP = 0;
         try {
@@ -124,23 +122,21 @@ const MainScreen = () => {
             console.warn("Price fetch failed", err);
         }
         
-        // Ensure they are numbers
+        if (!isMounted) return; // <--- 2. Stop if unmounted
+
         setPrices({ 
             ebond: Number(ebondP) || 0, 
             esir: Number(esirP) || 0 
         });
 
-        // 2. Fetch Staking Contract Data
         const provider = new ethers.providers.JsonRpcProvider(RpcProvider);
         const contract = new ethers.Contract(stakingContractAddress, abi, provider);
 
-        // Global Stats
         const tvlRaw = await contract.totalDeposits();
         const distRaw = await contract.paidOut();
         const tvl = parseFloat(ethers.utils.formatUnits(tvlRaw, 18));
         const dist = parseFloat(ethers.utils.formatUnits(distRaw, 18));
 
-        // User Stats (if connected)
         let userStaked = 0;
         let userPending = 0;
 
@@ -149,16 +145,14 @@ const MainScreen = () => {
           userStaked = parseFloat(ethers.utils.formatUnits(userInfo.amount, 18));
           
           try {
-             // Try to get pending rewards if ABI supports it
-             // If this fails, it won't crash the app thanks to try/catch
              const pending = await contract.pending(address); 
              userPending = parseFloat(ethers.utils.formatUnits(pending, 18));
-          } catch(e) {
-             // Silent fail for pending
-          }
+          } catch(e) {}
           
-          dispatch(setStakeBalance(userStaked * Math.pow(10, 18))); 
+          if(isMounted) dispatch(setStakeBalance(userStaked * Math.pow(10, 18))); 
         }
+
+        if (!isMounted) return; // <--- 3. Stop if unmounted
 
         setStakingData({
           stakedAmount: userStaked,
@@ -167,7 +161,6 @@ const MainScreen = () => {
           totalDistributed: dist
         });
 
-        // 3. Calculate APY
         const esirApyVal = ((((1 + (esirP / (0.865 * 1000))) ** 365) - 1) * 100);
         const ebondsRoiVal = ((ebondP / 0.865) - 1) * 100;
         
@@ -182,24 +175,19 @@ const MainScreen = () => {
     };
 
     init();
+
+    return () => { isMounted = false; }; // <--- 4. Cleanup function
   }, [address, dispatch]);
 
-  // Total EBONDS Assets = Wallet + Staked
   const totalEbonds = (Number(walletBalance) || 0) + stakingData.stakedAmount;
-  // Total ESIR Assets = Wallet + Pending Rewards
   const totalEsir = (Number(newTokenBalance) || 0) + stakingData.pendingRewards;
-  
   const totalBalanceUsd = (totalEbonds * prices.ebond) + (totalEsir * prices.esir);
 
   return (
     <Box>
       <Grid container spacing={3}>
-        
-        {/* LEFT COLUMN: Portfolio & Stats */}
         <Grid item xs={12} lg={7}>
           <Stack spacing={3}>
-            
-            {/* 1. Main Portfolio Card */}
             <Card sx={{ overflow: 'visible' }}> 
               <CardContent>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
@@ -208,7 +196,7 @@ const MainScreen = () => {
                       MY PORTFOLIO
                     </Typography>
                     <Typography variant="h3" fontWeight={800} sx={{ my: 1 }}>
-                      ${totalBalanceUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      ${totalBalanceUsd.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
                     </Typography>
                     <Chip label="Overall Funds" size="small" color="primary" sx={{ fontWeight: 700 }} />
                   </Box>
@@ -227,7 +215,6 @@ const MainScreen = () => {
                   />
                 </Box>
 
-                {/* Asset Breakdown */}
                 <PortfolioItem 
                   symbol="EBONDS" 
                   balance={totalEbonds} 
@@ -243,7 +230,6 @@ const MainScreen = () => {
               </CardContent>
             </Card>
 
-            {/* 2. ROI & APY Cards */}
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
               <Card sx={{ flex: 1, bgcolor: '#1a202c', color: 'white' }}>
                  <CardContent>
@@ -266,7 +252,6 @@ const MainScreen = () => {
               </Card>
             </Stack>
 
-            {/* 3. Global Platform Stats */}
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <StatCard 
@@ -288,14 +273,9 @@ const MainScreen = () => {
           </Stack>
         </Grid>
 
-        {/* RIGHT COLUMN: Charts & History */}
         <Grid item xs={12} lg={5}>
           <Stack spacing={3}>
-            
-            {/* Chart Component */}
             <CustomEBONDSChart />
-
-            {/* Transaction History */}
             <Card>
               <CardContent>
                  <Typography variant="h6" fontWeight={700} gutterBottom>
@@ -304,7 +284,6 @@ const MainScreen = () => {
                  <TransactionHistory account={address} tokenContractAddress={stakingContractAddress} />
               </CardContent>
             </Card>
-
           </Stack>
         </Grid>
 

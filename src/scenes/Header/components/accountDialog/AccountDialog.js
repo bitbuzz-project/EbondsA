@@ -1,26 +1,29 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   Dialog, 
-  DialogTitle, 
   DialogContent, 
   Box, 
   Typography, 
   Button, 
   IconButton, 
   Stack, 
-  Divider, 
   Avatar,
   Tooltip
 } from '@mui/material';
+
+// Icons
 import CloseIcon from '@mui/icons-material/Close';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import QrCodeIcon from '@mui/icons-material/QrCode';
 
+// Resources
 import MetamaskLogo from '../../../../resources/metamask.svg'; 
-// import WalletConnectLogo from '../../../../resources/walletconnect.svg'; <--- REMOVED MISSING FILE IMPORT
+// import WalletConnectLogo from '../../../../resources/walletconnect.svg'; 
 
+// Logic
 import { useWeb3React } from '@web3-react/core';
 import { injected, walletconnect } from '../../../../connector';
 import { toast } from 'react-toastify';
@@ -28,14 +31,56 @@ import { toast } from 'react-toastify';
 const AccountDialog = ({ show, setShow }) => {
   const { active, account, activate, deactivate } = useWeb3React();
 
+  // --- CONNECT LOGIC WITH AUTO-SWITCH ---
   const handleConnect = async (connector) => {
     try {
-      await activate(connector);
+      // 1. Try connecting normally
+      await activate(connector, undefined, true); 
       setShow(false);
       toast.success("Wallet Connected!");
     } catch (error) {
-      console.error(error);
-      toast.error("Connection Failed");
+      console.error("Connection attempt failed:", error);
+      
+      // 2. If it fails (likely due to wrong network), try switching to Arbitrum
+      if (window.ethereum) {
+          try {
+              await window.ethereum.request({
+                  method: 'wallet_switchEthereumChain',
+                  params: [{ chainId: '0xa4b1' }], // 42161 (Arbitrum One)
+              });
+              
+              // Retry connection after successful switch
+              await activate(connector);
+              setShow(false);
+              toast.success("Connected to Arbitrum!");
+          } catch (switchError) {
+              
+              // 3. If Arbitrum network is missing in wallet, add it
+              if (switchError.code === 4902) {
+                  try {
+                      await window.ethereum.request({
+                          method: 'wallet_addEthereumChain',
+                          params: [{
+                              chainId: '0xa4b1',
+                              chainName: 'Arbitrum One',
+                              nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+                              rpcUrls: ['https://arb1.arbitrum.io/rpc'],
+                              blockExplorerUrls: ['https://arbiscan.io/'],
+                          }],
+                      });
+                      await activate(connector);
+                      setShow(false);
+                  } catch (addError) {
+                      toast.error("Could not add Arbitrum network.");
+                  }
+              } else {
+                  // Generic error (User rejected request, etc)
+                  toast.warning("Please switch your wallet to Arbitrum One.");
+              }
+          }
+      } else {
+          toast.error("Connection failed. Check console.");
+      }
     }
   };
 
@@ -57,7 +102,12 @@ const AccountDialog = ({ show, setShow }) => {
       maxWidth="xs" 
       fullWidth
       PaperProps={{
-        sx: { borderRadius: 4, p: 1, boxShadow: '0 8px 32px rgba(0,0,0,0.1)' }
+        sx: { 
+            borderRadius: 4, 
+            p: 1, 
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+            bgcolor: 'background.paper'
+        }
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, pb: 0 }}>
@@ -72,16 +122,18 @@ const AccountDialog = ({ show, setShow }) => {
       <DialogContent sx={{ p: 3 }}>
         {!active ? (
           <Stack spacing={2}>
+            {/* MetaMask Button */}
             <ConnectorButton 
               name="MetaMask" 
               icon={MetamaskLogo} 
               onClick={() => handleConnect(injected)} 
             />
             
-            {/* WalletConnect Button (Icon removed to fix error) */}
+            {/* WalletConnect V2 Button */}
             <ConnectorButton 
               name="WalletConnect" 
-              // icon={WalletConnectLogo} <--- Removed icon prop
+              // icon={WalletConnectLogo}
+              fallbackIcon={<QrCodeIcon color="action" />}
               onClick={() => handleConnect(walletconnect)} 
             />
           </Stack>
@@ -91,7 +143,7 @@ const AccountDialog = ({ show, setShow }) => {
               <AccountBalanceWalletIcon fontSize="large" color="inherit" />
             </Avatar>
             
-            <Typography variant="body2" color="text.secondary">Connected with MetaMask</Typography>
+            <Typography variant="body2" color="text.secondary">Connected</Typography>
             <Typography variant="h5" fontWeight={700} sx={{ my: 1 }}>
               {account?.substring(0, 6)}...{account?.substring(account.length - 4)}
             </Typography>
@@ -137,7 +189,8 @@ const AccountDialog = ({ show, setShow }) => {
   );
 };
 
-const ConnectorButton = ({ name, icon, onClick }) => (
+// Helper Sub-Component
+const ConnectorButton = ({ name, icon, fallbackIcon, onClick }) => (
   <Button
     onClick={onClick}
     fullWidth
@@ -151,12 +204,21 @@ const ConnectorButton = ({ name, icon, onClick }) => (
       color: 'text.primary',
       border: '1px solid',
       borderColor: 'divider',
-      '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' }
+      transition: '0.2s',
+      '&:hover': { 
+        bgcolor: 'action.hover', 
+        borderColor: 'primary.main',
+        transform: 'translateY(-2px)'
+      }
     }}
   >
     <Typography fontWeight={600}>{name}</Typography>
-    {/* Only render image if icon exists */}
-    {icon ? <img src={icon} alt={name} width={30} /> : <AccountBalanceWalletIcon color="action" />}
+    {/* Logic: Try to show Image, if fails or missing, show Fallback Icon, default to Wallet Icon */}
+    {icon ? (
+        <img src={icon} alt={name} width={30} onError={(e) => {e.target.style.display='none'}} />
+    ) : (
+        fallbackIcon || <AccountBalanceWalletIcon color="action" />
+    )}
   </Button>
 );
 

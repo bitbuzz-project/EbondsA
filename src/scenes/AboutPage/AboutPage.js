@@ -1,23 +1,11 @@
-import classes from './AboutPage.module.scss'
-import '@uniswap/widgets/dist/fonts.css'
-import { SwapWidget } from '@uniswap/widgets'
+import React from 'react';
+import { Box, Container, Typography, Paper, useTheme, useMediaQuery } from '@mui/material';
+import { SwapWidget } from '@uniswap/widgets';
+import '@uniswap/widgets/dist/fonts.css';
 
-const theme = {
-  primary: '#000',
-  secondary: '#666',
-  interactive: '#f5f5f5',
-  container: '#FFF',
-  module: '#E7E7E7',
-  accent: '#d39d5d',
-  outline: '#343D3A',
-  dialog: '#FFF',
-  color: '#fff',
-  fontFamily: 'Space Grotesk',
-  borderRadius: 0.8,
-};
-// You can also pass a token list as JSON, as long as it matches the schema
+// 1. Define your Token List
 const MY_TOKEN_LIST = [
-    {
+  {
     "name": "EBONDS",
     "address": "0x53ee546eb38fb2c8b870f56deeaecf80367a4551",
     "symbol": "EBONDS",
@@ -41,45 +29,76 @@ const MY_TOKEN_LIST = [
     "chainId": 42161,
     "logoURI": "https://arbiscan.io/token/images/centre-usdc_28.png"
   },
-  //   {
-  //   "name": "Tether USD",
-  //   "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-  //   "symbol": "USDT",
-  //   "decimals": 6,
-  //   "chainId": 42161,
-  //   "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png"
-  // },
-  // {
-  //   "name": "USD Coin",
-  //   "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-  //   "symbol": "USDC",
-  //   "decimals": 6,
-  //   "chainId": 42161,
-  //   "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png"
-  // },
-]
-// Use the native token of the connected chain as the default input token
-const NATIVE = '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8' // Special address for native token
+];
 
-// WBTC as the default output token
-const WBTC = '0x53ee546eb38fb2c8b870f56deeaecf80367a4551'
+// 2. Default Addresses
+const NATIVE = '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8'; // USDC.e as input
+const EBONDS_ADDRESS = '0x53ee546eb38fb2c8b870f56deeaecf80367a4551'; // EBONDS as output
 
 const AboutPage = () => {
-    return (<div className={classes.AboutPage}>
-        <header>
-    
-            
-        </header>
-        <main>
- <div className={classes.Uniswap}>
-    <SwapWidget width={460} theme={theme} tokenList={MY_TOKEN_LIST}    defaultInputTokenAddress={NATIVE}
-      defaultOutputTokenAddress={WBTC} />
-  </div>       
+  const muiTheme = useTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
 
-    
+  // 3. Match Uniswap Theme to your App Theme
+  const widgetTheme = {
+    primary: '#1a202c',       // Text Color (Dark)
+    secondary: '#718096',     // Subtext Color
+    interactive: '#F7F9FC',   // Button Backgrounds
+    container: '#ffffff',     // Card Background (Matches our wrapper now)
+    module: '#F7F9FC',        // Input Fields
+    accent: '#01C275',        // EBONDS Green (Action Buttons)
+    outline: '#E2E8F0',       // Borders
+    dialog: '#ffffff',        // Popups
+    fontFamily: '"Space Grotesk", sans-serif',
+    borderRadius: 0.8,        // Matches your rounded look
+  };
+
+  return (
+    <Box sx={{ 
+      py: 4, // Reduced padding top
+      minHeight: '80vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      flexDirection: 'column' 
+    }}>
+      <Container maxWidth="md" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         
-        </main>
-    </div>);
+        {/* Header Text */}
+        <Box sx={{ textAlign: 'center', mb: 3 }}> {/* Reduced margin-bottom from 6 to 3 */}
+          <Typography variant="h2" fontWeight={800} gutterBottom>
+            Swap
+          </Typography>
+          <Typography variant="h6" color="text.secondary">
+            Trade EBONDS instantly with zero platform fees.
+          </Typography>
+        </Box>
+
+        {/* Widget Container - Fixed Transparency */}
+        <Paper 
+          elevation={3} // Added shadow
+          sx={{ 
+            p: 1, 
+            borderRadius: 4, 
+            bgcolor: '#ffffff', // Force White Background
+            display: 'flex',
+            justifyContent: 'center',
+            width: '100%',
+            maxWidth: 480, // Constrain width slightly for better look
+            boxShadow: '0 8px 32px rgba(0,0,0,0.08)' // Soft "Pro" Shadow
+          }}
+        >
+          <SwapWidget 
+            width={isMobile ? '100%' : 460} 
+            theme={widgetTheme}
+            tokenList={MY_TOKEN_LIST}
+            defaultInputTokenAddress={NATIVE}
+            defaultOutputTokenAddress={EBONDS_ADDRESS}
+          />
+        </Paper>
+
+      </Container>
+    </Box>
+  );
 }
- 
+
 export default AboutPage;

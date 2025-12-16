@@ -1,21 +1,18 @@
-import { InjectedConnector } from '@web3-react/injected-connector'
-
-// Other possible connectors
- import { WalletConnectConnector } from '@web3-react/walletconnect-connector';
+import { InjectedConnector } from '@web3-react/injected-connector';
+import { WalletConnectV2Connector } from './WalletConnectV2Connector'; // Import the file we just made
 import { RpcProvider } from './consts/rpc';
-// import { WalletLinkConnector } from '@web3-react/walletlink-connector';
-// import { LedgerConnector } from '@web3-react/ledger-connector';
-// import { BscConnector } from '@binance-chain/bsc-connector';
 
 export const injected = new InjectedConnector({
+  supportedChainIds: [42161], // Arbitrum One
+});
+
+// Configure WalletConnect V2
+export const walletconnect = new WalletConnectV2Connector({
   supportedChainIds: [42161],
+  mainChainId: 42161,
+  rpcMap: { 42161: RpcProvider },
+  // -----------------------------------------------------------
+  // TODO: Replace with your actual Project ID from cloud.reown.com
+  projectId: "c07ae9abdbc5b70e77f69348a09bb9c1", 
+  // -----------------------------------------------------------
 });
-
-export const walletconnect = new WalletConnectConnector({
-  rpcUrl: RpcProvider,
-  bridge: "https://bridge.walletconnect.org",
-  qrcode: true
-});
-
-// refer to https://github.com/NoahZinsmeister/web3-react 
-// for all available connectors

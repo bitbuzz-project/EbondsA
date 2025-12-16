@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { BigNumber, ethers } from 'ethers';
+import { ethers } from 'ethers';
 import { toast } from 'react-toastify';
 import { 
   Box, 
@@ -11,14 +11,13 @@ import {
   Button, 
   InputAdornment,
   Stack,
-  Divider,
   Slider
 } from '@mui/material';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 
 import { abi, stakingContractAddress } from './../../services/consts';
 import { abi as tokenAbi, tokenContractAddress } from './services/consts';
-import { setBalance, setDecimal } from './../../../../features/userWalletSlice';
+import { setBalance } from './../../../../features/userWalletSlice';
 import { selectAddress } from './../../../../features/userWalletSlice';
 import { RpcProvider } from '../../../../consts/rpc';
 
@@ -63,9 +62,11 @@ const StakeCard = ({ update }) => {
     };
 
     const handleAction = async () => {
-        if (!amount || parseFloat(amount) <= 0) {
-            toast.error("Please enter a valid amount");
-            return;
+        // --- 1. VALIDATION CHECK ---
+        // We use Number() to cover cases like "0" or "0.0"
+        if (!amount || Number(amount) <= 0 || isNaN(Number(amount))) {
+            toast.error("Please enter a valid amount greater than 0");
+            return; // Stop execution here
         }
 
         setLoading(true);
@@ -104,7 +105,8 @@ const StakeCard = ({ update }) => {
             }
         } catch (error) {
             console.error(error);
-            toast.error(error.message || "Transaction failed");
+            // Handle specific Metamask errors or generic ones
+            toast.error(error?.data?.message || error.message || "Transaction failed");
         } finally {
             setLoading(false);
         }
@@ -162,7 +164,8 @@ const StakeCard = ({ update }) => {
                     fullWidth
                     variant="contained"
                     size="large"
-                    disabled={!walletAddress || loading || (parseFloat(amount) > balanceFormatted && !isApprovalNeeded)}
+                    // Removed the complex disabled logic so the user can CLICK and see the error toast if 0
+                    disabled={!walletAddress || loading} 
                     onClick={handleAction}
                     sx={{ 
                         borderRadius: 3, 
@@ -175,13 +178,16 @@ const StakeCard = ({ update }) => {
                     {!walletAddress ? 'Connect Wallet' : loading ? 'Processing...' : isApprovalNeeded ? 'Approve EBONDS' : 'Stake Now'}
                 </Button>
 
-                {/* Optional Slider */}
                 <Box sx={{ px: 1, mt: 2 }}>
-                    <Slider 
-                        value={amount ? (parseFloat(amount)/balanceFormatted)*100 : 0} 
+                   <Slider 
+                        value={
+                            amount && balanceFormatted > 0 
+                            ? (Math.min(Number(amount), balanceFormatted) / balanceFormatted) * 100 
+                            : 0
+                        } 
                         onChange={(e, val) => setAmount(((balanceFormatted * val) / 100).toFixed(2))}
                         size="small"
-                        disabled={!balanceFormatted}
+                        disabled={balanceFormatted <= 0} // Disable if no balance
                     />
                 </Box>
             </CardContent>

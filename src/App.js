@@ -1,8 +1,8 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import { ThemeProvider } from '@mui/material/styles'; // Import ThemeProvider
-import CssBaseline from '@mui/material/CssBaseline'; // Import CssBaseline
+import { ThemeProvider } from '@mui/material/styles'; 
+import CssBaseline from '@mui/material/CssBaseline'; 
 import { Web3ReactProvider } from '@web3-react/core';
 import { ethers } from 'ethers';
 
@@ -11,7 +11,7 @@ import { routes } from './routes';
 import history from './history';
 import BaseLayout from './scenes/BaseLayout/BaseLayout';
 import store from './app/store';
-import theme from './theme'; // Import the theme we just created
+import theme from './theme'; 
 import PrivateRoute from './scenes/PrivateRoute/PrivateRoute';
 import ScrollToTop from './scenes/ScrollToTop/ScrollToTop';
 
@@ -19,7 +19,8 @@ import './fonts.css';
 import 'react-toastify/dist/ReactToastify.css';
 import "animate.css/animate.min.css";
 
-const POLLING_INTERVAL = 12000;
+// Increase polling to 15 seconds to prevent 429 Errors
+const POLLING_INTERVAL = 15000;
 
 const getLibrary = (provider) => {
   const library = new ethers.providers.Web3Provider(provider);
@@ -34,9 +35,7 @@ class App extends React.PureComponent {
     return (
       <Web3ReactProvider getLibrary={getLibrary}>
         <Provider store={store}>
-          {/* ThemeProvider makes the theme available to all components */}
           <ThemeProvider theme={theme}>
-            {/* CssBaseline standardizes global CSS (backgrounds, fonts) */}
             <CssBaseline /> 
             <ScrollToTop />
             <BaseLayout history={history}>
