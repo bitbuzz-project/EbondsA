@@ -1,294 +1,369 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from 'react-redux';
-import { ethers } from 'ethers';
+import React, { useState, useEffect } from 'react';
 import { 
-  Box, 
-  Grid, 
-  Typography, 
-  Card, 
-  CardContent, 
-  LinearProgress, 
-  Stack, 
-  Chip,
-  Avatar,
-  Button
+    Box, 
+    Container, 
+    Grid, 
+    Typography, 
+    Paper, 
+    Stack, 
+    Divider,
+    Button,
+    Chip,
+    Skeleton,
+    IconButton
 } from '@mui/material';
+import { useWeb3React } from '@web3-react/core';
+import { ethers } from 'ethers';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 // Icons
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward';
 import HistoryIcon from '@mui/icons-material/History';
-import TokenIcon from '@mui/icons-material/Token'; 
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import PublishIcon from '@mui/icons-material/Publish'; 
+import GetAppIcon from '@mui/icons-material/GetApp'; 
 
-// Project Imports
-import { RpcProvider } from '../../consts/rpc';
-import { abi, stakingContractAddress } from './services/consts';
-import { setBalance as setStakeBalance } from '../../features/stakingSlice'; 
-import { fetchUSDTPrice, fetchEbPrice } from '../../services/prices';
+// Import ONLY what exists
+import { 
+    stakingContractAddress, 
+    abi as stakingAbi,
+} from '../AllocationStaking/services/consts';
 
-// Sub-Components
-import TransactionHistory from "./components/TransactionHistory/Info"; 
-import CustomEBONDSChart from "./components/Transactionchart/Info"; 
+// --- FIXED ADDRESSES ---
+const EBONDS_ADDRESS = '0x53Ee546eB38fB2C8b870f56DeeaeCF80367a4551';
+const ESIR_ADDRESS = '0x8C75a1C86C21b74754FC8e3Bc4e7f79B4fCC5a28';
 
-// --- Helper Components ---
-const PortfolioItem = ({ symbol, balance, price, iconColor }) => {
-  const safePrice = Number(price) || 0;
-  const safeBalance = Number(balance) || 0;
-  const usdValue = safeBalance * safePrice;
-  
-  return (
-    <Box sx={{ 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'space-between', 
-      p: 2, 
-      bgcolor: 'background.paper', 
-      borderRadius: 2,
-      mb: 1,
-      boxShadow: '0px 2px 10px rgba(0,0,0,0.02)',
-      border: '1px solid',
-      borderColor: 'divider'
-    }}>
-      <Stack direction="row" spacing={2} alignItems="center">
-        <Avatar sx={{ bgcolor: iconColor, width: 40, height: 40 }}>
-          <TokenIcon sx={{ color: 'white' }} />
-        </Avatar>
-        <Box>
-          <Typography variant="subtitle1" fontWeight={700}>{symbol}</Typography>
-          <Typography variant="body2" color="text.secondary">
-            {safeBalance.toLocaleString('en-US', { maximumFractionDigits: 2 })} {symbol}
-          </Typography>
-        </Box>
-      </Stack>
-      <Box sx={{ textAlign: 'right' }}>
-        <Typography variant="subtitle1" fontWeight={700}>
-          ${usdValue.toLocaleString('en-US', { maximumFractionDigits: 2 })}
-        </Typography>
-        <Typography variant="caption" color="text.secondary">
-          @ ${safePrice.toFixed(4)}
-        </Typography>
-      </Box>
-    </Box>
-  );
+// --- CONFIG ---
+const FIXED_DECIMALS = 18;
+const PRICES = {
+    EBONDS: 0.865,
+    ESIR: 1.20,
+    USDT: 1.00
 };
+const COLORS = ['#d29d5c', '#64748b', '#ffffff'];
 
-const StatCard = ({ title, value, subtext, highlight }) => (
-  <Card sx={{ height: '100%', position: 'relative', overflow: 'visible' }}>
-    <CardContent>
-      <Typography variant="body2" color="text.secondary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-        {title} <InfoOutlinedIcon sx={{ fontSize: 14 }} />
-      </Typography>
-      <Typography variant="h4" fontWeight={700} color={highlight ? 'primary.main' : 'text.primary'}>
-        {value}
-      </Typography>
-      <Typography variant="caption" color="text.secondary">
-        {subtext}
-      </Typography>
-    </CardContent>
-  </Card>
+// Minimal ERC20 ABI
+const TOKEN_ABI = [
+    "function balanceOf(address owner) view returns (uint256)",
+    "event Transfer(address indexed from, address indexed to, uint256 value)"
+];
+
+const StatBox = ({ label, value, subValue }) => (
+    <Box sx={{ p: 3, border: '1px solid rgba(255,255,255,0.1)', borderRadius: 0, bgcolor: 'rgba(255,255,255,0.02)' }}>
+        <Typography variant="caption" color="text.secondary" fontWeight={700} letterSpacing="0.1em">
+            {label}
+        </Typography>
+        <Typography variant="h4" fontWeight={700} color="white" sx={{ mt: 1, fontFamily: '"Space Grotesk", sans-serif' }}>
+            {value}
+        </Typography>
+        {subValue && (
+            <Typography variant="body2" color="primary.main" sx={{ mt: 0.5, fontWeight: 600 }}>
+                {subValue}
+            </Typography>
+        )}
+    </Box>
 );
 
-// --- Main Component ---
-
 const MainScreen = () => {
-  const dispatch = useDispatch();
-  
-  // Redux Data
-  const address = useSelector(state => state.userWallet.address);
-  const walletBalance = useSelector(state => state.userWallet.balance) / Math.pow(10, 18); 
-  const newTokenBalance = useSelector(state => state.userWallet.newTokenBalance) / Math.pow(10, 18); 
+    const { account, library } = useWeb3React();
+    
+    // --- STATE ---
+    const [balances, setBalances] = useState({ ebonds: 0, esir: 0 });
+    const [history, setHistory] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-  // Local State
-  const [prices, setPrices] = useState({ ebond: 0, esir: 0 });
-  const [stakingData, setStakingData] = useState({
-    stakedAmount: 0,
-    pendingRewards: 0,
-    tvl: 0,
-    totalDistributed: 0,
-  });
-  const [apy, setApy] = useState({ ebondsRoi: 0, esirApy: 0 });
+    // --- SMART LABELING HELPER ---
+    const getTxType = (from, to) => {
+        const f = from.toLowerCase();
+        const t = to.toLowerCase();
+        const me = account.toLowerCase();
+        const stake = stakingContractAddress.toLowerCase();
 
-  // --- Fetch Data ---
-  useEffect(() => {
-    let isMounted = true; // <--- 1. Flag to track mount status
+        if (t === stake) return { label: 'Staked', icon: <PublishIcon fontSize="small" /> };
+        if (f === stake) return { label: 'Unstaked/Claimed', icon: <GetAppIcon fontSize="small" /> };
+        if (f === me) return { label: 'Sent', icon: <ArrowOutwardIcon fontSize="small" /> };
+        if (t === me) return { label: 'Received', icon: <GetAppIcon fontSize="small" /> };
 
-    const init = async () => {
-      try {
-        let esirP = 0;
-        let ebondP = 0;
-        try {
-            esirP = await fetchUSDTPrice();
-            ebondP = await fetchEbPrice();
-        } catch(err) {
-            console.warn("Price fetch failed", err);
-        }
-        
-        if (!isMounted) return; // <--- 2. Stop if unmounted
-
-        setPrices({ 
-            ebond: Number(ebondP) || 0, 
-            esir: Number(esirP) || 0 
-        });
-
-        const provider = new ethers.providers.JsonRpcProvider(RpcProvider);
-        const contract = new ethers.Contract(stakingContractAddress, abi, provider);
-
-        const tvlRaw = await contract.totalDeposits();
-        const distRaw = await contract.paidOut();
-        const tvl = parseFloat(ethers.utils.formatUnits(tvlRaw, 18));
-        const dist = parseFloat(ethers.utils.formatUnits(distRaw, 18));
-
-        let userStaked = 0;
-        let userPending = 0;
-
-        if (address) {
-          const userInfo = await contract.userInfo(address);
-          userStaked = parseFloat(ethers.utils.formatUnits(userInfo.amount, 18));
-          
-          try {
-             const pending = await contract.pending(address); 
-             userPending = parseFloat(ethers.utils.formatUnits(pending, 18));
-          } catch(e) {}
-          
-          if(isMounted) dispatch(setStakeBalance(userStaked * Math.pow(10, 18))); 
-        }
-
-        if (!isMounted) return; // <--- 3. Stop if unmounted
-
-        setStakingData({
-          stakedAmount: userStaked,
-          pendingRewards: userPending,
-          tvl,
-          totalDistributed: dist
-        });
-
-        const esirApyVal = ((((1 + (esirP / (0.865 * 1000))) ** 365) - 1) * 100);
-        const ebondsRoiVal = ((ebondP / 0.865) - 1) * 100;
-        
-        setApy({ 
-            esirApy: isNaN(esirApyVal) ? 0 : esirApyVal, 
-            ebondsRoi: isNaN(ebondsRoiVal) ? 0 : ebondsRoiVal 
-        });
-
-      } catch (error) {
-        console.error("Dashboard Data Error:", error);
-      }
+        return { label: 'Transaction', icon: <SwapHorizIcon fontSize="small" /> };
     };
 
-    init();
+    // --- FETCH DATA ---
+    useEffect(() => {
+        if (!account || !library) return;
 
-    return () => { isMounted = false; }; // <--- 4. Cleanup function
-  }, [address, dispatch]);
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const ebondsContract = new ethers.Contract(EBONDS_ADDRESS, TOKEN_ABI, library);
+                const esirContract = new ethers.Contract(ESIR_ADDRESS, TOKEN_ABI, library);
+                
+                // 1. FETCH BALANCES
+                const [ebBalanceRaw, esBalanceRaw] = await Promise.all([
+                    ebondsContract.balanceOf(account),
+                    esirContract.balanceOf(account)
+                ]);
 
-  const totalEbonds = (Number(walletBalance) || 0) + stakingData.stakedAmount;
-  const totalEsir = (Number(newTokenBalance) || 0) + stakingData.pendingRewards;
-  const totalBalanceUsd = (totalEbonds * prices.ebond) + (totalEsir * prices.esir);
+                setBalances({ 
+                    ebonds: parseFloat(ethers.utils.formatUnits(ebBalanceRaw, FIXED_DECIMALS)), 
+                    esir: parseFloat(ethers.utils.formatUnits(esBalanceRaw, FIXED_DECIMALS)) 
+                });
 
-  return (
-    <Box>
-      <Grid container spacing={3}>
-        <Grid item xs={12} lg={7}>
-          <Stack spacing={3}>
-            <Card sx={{ overflow: 'visible' }}> 
-              <CardContent>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary" fontWeight={700}>
-                      MY PORTFOLIO
-                    </Typography>
-                    <Typography variant="h3" fontWeight={800} sx={{ my: 1 }}>
-                      ${totalBalanceUsd.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
-                    </Typography>
-                    <Chip label="Overall Funds" size="small" color="primary" sx={{ fontWeight: 700 }} />
-                  </Box>
-                  <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
-                     <Button variant="outlined" startIcon={<HistoryIcon />} disabled>
-                        History
-                     </Button>
-                  </Box>
-                </Stack>
+                // 2. FETCH TOKEN HISTORY 
+                const currentBlock = await library.getBlockNumber();
+                const fromBlock = Math.max(0, currentBlock - 500000); // Look back ~500k blocks
 
-                <Box sx={{ mb: 4 }}>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={totalEbonds > 0 ? 50 : 0} 
-                    sx={{ height: 8, borderRadius: 5, bgcolor: 'action.hover' }} 
-                  />
+                // Filters
+                const filterEbondsIn = ebondsContract.filters.Transfer(null, account);
+                const filterEbondsOut = ebondsContract.filters.Transfer(account, null);
+                const filterEsirIn = esirContract.filters.Transfer(null, account);
+                const filterEsirOut = esirContract.filters.Transfer(account, null);
+
+                const [ebIn, ebOut, esIn, esOut] = await Promise.all([
+                    ebondsContract.queryFilter(filterEbondsIn, fromBlock),
+                    ebondsContract.queryFilter(filterEbondsOut, fromBlock),
+                    esirContract.queryFilter(filterEsirIn, fromBlock),
+                    esirContract.queryFilter(filterEsirOut, fromBlock)
+                ]);
+
+                const formatLog = (log, tokenName) => {
+                    const amount = parseFloat(ethers.utils.formatUnits(log.args.value, FIXED_DECIMALS));
+                    const type = getTxType(log.args.from, log.args.to);
+                    
+                    return {
+                        action: `${type.label} ${tokenName}`,
+                        amount: `${type.label === 'Sent' || type.label === 'Staked' ? '-' : '+'}${amount.toFixed(2)}`,
+                        rawAmount: amount,
+                        hash: log.transactionHash,
+                        blockNumber: log.blockNumber,
+                        icon: type.icon,
+                        color: (type.label === 'Received' || type.label.includes('Unstaked')) ? 'success.main' : 'error.main'
+                    };
+                };
+
+                const allTx = [
+                    ...ebIn.map(l => formatLog(l, 'EBONDS')),
+                    ...ebOut.map(l => formatLog(l, 'EBONDS')),
+                    ...esIn.map(l => formatLog(l, 'ESIR')),
+                    ...esOut.map(l => formatLog(l, 'ESIR'))
+                ].sort((a, b) => b.blockNumber - a.blockNumber);
+
+                setHistory(allTx.slice(0, 7));
+
+            } catch (error) {
+                console.error("Dashboard Fetch Error:", error);
+            }
+            setLoading(false);
+        };
+
+        fetchData();
+    }, [account, library]);
+
+    // Derived Values
+    const ebondsValue = balances.ebonds * PRICES.EBONDS;
+    const esirValue = balances.esir * PRICES.ESIR;
+    const totalValue = ebondsValue + esirValue;
+
+    const data = [
+        { name: 'EBONDS', value: ebondsValue },
+        { name: 'ESIR', value: esirValue },
+    ];
+    const chartData = data.filter(d => d.value > 0);
+    if (chartData.length === 0) chartData.push({ name: 'Empty', value: 1 });
+
+    const formatPrecise = (num) => {
+        if (num === 0) return "0.00";
+        if (num < 0.01) return num.toFixed(6); 
+        return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
+    return (
+        <Box sx={{ 
+            minHeight: '100vh', 
+            pt: { xs: 12, md: 16 }, 
+            pb: 8,
+            bgcolor: '#05090f',
+            backgroundImage: 'radial-gradient(circle at 90% 10%, rgba(210, 157, 92, 0.05), transparent 40%)'
+        }}>
+            <Container maxWidth="xl">
+                
+                {/* HEADER */}
+                <Box sx={{ mb: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                    <Box>
+                        <Typography variant="overline" color="text.secondary" fontWeight={700} letterSpacing="0.2em">
+                            PORTFOLIO OVERVIEW
+                        </Typography>
+                        <Typography variant="h2" fontWeight={700} color="white">
+                            Dashboard
+                        </Typography>
+                    </Box>
+                    <Chip 
+                        icon={<AccountBalanceWalletIcon sx={{ fontSize: '1rem !important', color: '#000 !important' }} />} 
+                        label={account ? `${account.substring(0,6)}...${account.substring(account.length-4)}` : "Not Connected"} 
+                        sx={{ bgcolor: '#d29d5c', color: 'black', fontWeight: 700 }}
+                    />
                 </Box>
 
-                <PortfolioItem 
-                  symbol="EBONDS" 
-                  balance={totalEbonds} 
-                  price={prices.ebond}
-                  iconColor="#9E9E9E"
-                />
-                <PortfolioItem 
-                  symbol="ESIR" 
-                  balance={totalEsir} 
-                  price={prices.esir}
-                  iconColor="#000000" 
-                />
-              </CardContent>
-            </Card>
+                <Grid container spacing={4}>
+                    
+                    {/* COL 1: Net Worth & Stats */}
+                    <Grid item xs={12} md={8}>
+                        <Grid container spacing={4}>
+                            <Grid item xs={12}>
+                                <Paper sx={{ 
+                                    p: 5, 
+                                    bgcolor: '#0a1019', 
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <Box>
+                                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                                            ESTIMATED NET WORTH
+                                        </Typography>
+                                        <Typography variant="h2" fontWeight={700} color="white" sx={{ fontFamily: 'monospace' }}>
+                                            {/* FIX: Forced to exactly 3 decimals */}
+                                            ${totalValue.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}
+                                        </Typography>
+                                    </Box>
+                                    <Button variant="outlined" endIcon={<ArrowOutwardIcon />}>
+                                        View Analytics
+                                    </Button>
+                                </Paper>
+                            </Grid>
 
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-              <Card sx={{ flex: 1, bgcolor: '#1a202c', color: 'white' }}>
-                 <CardContent>
-                   <Typography variant="body2" sx={{ opacity: 0.7 }}>EBONDS Real-Time ROI</Typography>
-                   <Typography variant="h4" fontWeight={700} sx={{ my: 1, color: '#01C275' }}>
-                     {apy.ebondsRoi.toFixed(2)}%
-                   </Typography>
-                   <Typography variant="caption" sx={{ opacity: 0.5 }}>Return on Investment</Typography>
-                 </CardContent>
-              </Card>
+                            <Grid item xs={12} md={6}>
+                                <StatBox 
+                                    label="EBONDS HOLDINGS" 
+                                    value={formatPrecise(balances.ebonds)} 
+                                    subValue={`≈ $${formatPrecise(ebondsValue)}`}
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                                <StatBox 
+                                    label="ESIR HOLDINGS" 
+                                    value={formatPrecise(balances.esir)} 
+                                    subValue={`≈ $${formatPrecise(esirValue)}`}
+                                />
+                            </Grid>
 
-              <Card sx={{ flex: 1, bgcolor: '#1a202c', color: 'white' }}>
-                 <CardContent>
-                   <Typography variant="body2" sx={{ opacity: 0.7 }}>ESIR Real-Time APY</Typography>
-                   <Typography variant="h4" fontWeight={700} sx={{ my: 1, color: '#01C275' }}>
-                     {apy.esirApy.toFixed(2)}%
-                   </Typography>
-                   <Typography variant="caption" sx={{ opacity: 0.5 }}>Annual Percentage Yield</Typography>
-                 </CardContent>
-              </Card>
-            </Stack>
+                            {/* PRO Transaction History */}
+                            <Grid item xs={12}>
+                                <Box sx={{ mt: 2 }}>
+                                    <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 3 }}>
+                                        <HistoryIcon color="primary" fontSize="small" />
+                                        <Typography variant="h6" fontWeight={700}>Token Activity (EBONDS & ESIR)</Typography>
+                                    </Stack>
+                                    
+                                    <Paper sx={{ border: '1px solid rgba(255,255,255,0.1)', bgcolor: 'transparent' }}>
+                                        {loading ? (
+                                            <Box sx={{ p: 3 }}><Skeleton animation="wave" height={40} /><Skeleton animation="wave" height={40} /></Box>
+                                        ) : history.length === 0 ? (
+                                            <Box sx={{ p: 4, textAlign: 'center' }}>
+                                                <Typography color="text.secondary">No token activity found in recent blocks.</Typography>
+                                            </Box>
+                                        ) : (
+                                            history.map((row, i) => (
+                                                <Box key={row.hash + i} sx={{ 
+                                                    p: 3, 
+                                                    borderBottom: i !== history.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    transition: 'bgcolor 0.2s',
+                                                    '&:hover': { bgcolor: 'rgba(255,255,255,0.02)' }
+                                                }}>
+                                                    <Stack direction="row" spacing={2} alignItems="center">
+                                                        <Box sx={{ 
+                                                            p: 1, borderRadius: '50%', 
+                                                            bgcolor: row.amount.includes('+') ? 'rgba(76, 175, 80, 0.1)' : 'rgba(239, 83, 80, 0.1)',
+                                                            color: row.amount.includes('+') ? 'success.main' : 'error.main'
+                                                        }}>
+                                                            {row.icon}
+                                                        </Box>
+                                                        <Box>
+                                                            <Typography variant="body1" fontWeight={600} color="white">{row.action}</Typography>
+                                                            <Stack direction="row" spacing={1} alignItems="center">
+                                                                <Typography variant="caption" color="text.secondary">Block #{row.blockNumber}</Typography>
+                                                                <IconButton 
+                                                                    size="small" 
+                                                                    href={`https://arbiscan.io/tx/${row.hash}`} 
+                                                                    target="_blank"
+                                                                    sx={{ color: 'rgba(255,255,255,0.2)', p: 0 }}
+                                                                >
+                                                                    <OpenInNewIcon sx={{ fontSize: 12 }} />
+                                                                </IconButton>
+                                                            </Stack>
+                                                        </Box>
+                                                    </Stack>
+                                                    
+                                                    <Box textAlign="right">
+                                                        <Typography variant="body1" fontWeight={600} color={row.color} fontFamily="monospace">
+                                                            {row.amount}
+                                                        </Typography>
+                                                        <Chip label="Success" size="small" color="default" sx={{ height: 20, fontSize: '0.65rem', opacity: 0.7 }} />
+                                                    </Box>
+                                                </Box>
+                                            ))
+                                        )}
+                                    </Paper>
+                                </Box>
+                            </Grid>
+                        </Grid>
+                    </Grid>
 
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <StatCard 
-                  title="Total EBONDS Staked" 
-                  value={stakingData.tvl.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-                  highlight
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                 <StatCard 
-                  title="Total Distributed" 
-                  value={`${stakingData.totalDistributed.toLocaleString('en-US', { maximumFractionDigits: 0 })} ESIR`}
-                  subtext={`Total Rewards Paid Out`}
-                />
-              </Grid>
-            </Grid>
+                    {/* COL 2: Chart & Allocation */}
+                    <Grid item xs={12} md={4}>
+                        <Paper sx={{ p: 4, height: '100%', bgcolor: '#0a1019', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            <Typography variant="h6" fontWeight={700} gutterBottom>Asset Allocation</Typography>
+                            <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)', mb: 4 }} />
+                            
+                            <Box sx={{ height: 250, mb: 4 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={chartData}
+                                            innerRadius={60}
+                                            outerRadius={80}
+                                            paddingAngle={5}
+                                            dataKey="value"
+                                            stroke="none"
+                                        >
+                                            {chartData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip 
+                                            contentStyle={{ backgroundColor: '#131a25', borderColor: '#334155', color: '#fff' }}
+                                            itemStyle={{ color: '#fff' }}
+                                            formatter={(value) => `$${value.toLocaleString()}`}
+                                        />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </Box>
 
-          </Stack>
-        </Grid>
+                            <Stack spacing={2}>
+                                {data.map((item, index) => (
+                                    <Box key={item.name} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <Stack direction="row" spacing={1} alignItems="center">
+                                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS[index] }} />
+                                            <Typography variant="body2" fontWeight={600}>{item.name}</Typography>
+                                        </Stack>
+                                        <Typography variant="body2" color="text.secondary" fontFamily="monospace">
+                                            {totalValue > 0 ? ((item.value / totalValue) * 100).toFixed(1) : 0}%
+                                        </Typography>
+                                    </Box>
+                                ))}
+                            </Stack>
+                        </Paper>
+                    </Grid>
 
-        <Grid item xs={12} lg={5}>
-          <Stack spacing={3}>
-            <CustomEBONDSChart />
-            <Card>
-              <CardContent>
-                 <Typography variant="h6" fontWeight={700} gutterBottom>
-                   Transaction History
-                 </Typography>
-                 <TransactionHistory account={address} tokenContractAddress={stakingContractAddress} />
-              </CardContent>
-            </Card>
-          </Stack>
-        </Grid>
-
-      </Grid>
-    </Box>
-  );
-}
+                </Grid>
+            </Container>
+        </Box>
+    );
+};
 
 export default MainScreen;

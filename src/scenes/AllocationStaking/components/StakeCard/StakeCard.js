@@ -1,198 +1,183 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { ethers } from 'ethers';
+import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { 
-  Box, 
-  Card, 
-  CardContent, 
-  Typography, 
-  TextField, 
-  Button, 
-  InputAdornment,
-  Stack,
-  Slider
+    Box, Paper, Typography, Button, TextField, InputAdornment, Stack, Chip, CircularProgress 
 } from '@mui/material';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import { ethers } from 'ethers';
+import { useWeb3React } from '@web3-react/core';
+import { tokenContractAddress, abi as tokenAbi } from './services/consts';
+import { stakingContractAddress, abi as stakingAbi } from '../../services/consts';
 
-import { abi, stakingContractAddress } from './../../services/consts';
-import { abi as tokenAbi, tokenContractAddress } from './services/consts';
-import { setBalance } from './../../../../features/userWalletSlice';
-import { selectAddress } from './../../../../features/userWalletSlice';
-import { RpcProvider } from '../../../../consts/rpc';
+// HARDCODED CONSTANT
+const FIXED_DECIMALS = 18;
 
 const StakeCard = ({ update }) => {
-    const dispatch = useDispatch();
     const [amount, setAmount] = useState('');
+    const [isApproving, setIsApproving] = useState(false);
+    const [isStaking, setIsStaking] = useState(false);
     const [allowance, setAllowance] = useState(0);
-    const [loading, setLoading] = useState(false);
 
-    // Redux
-    const balance = useSelector(state => state.userWallet.balance);
-    const decimals = useSelector(state => state.userWallet.decimal);
-    const walletAddress = useSelector(selectAddress);
+    const { account, library } = useWeb3React();
+    const balanceWei = useSelector(state => state.userWallet.balance);
 
-    // Derived values
-    const balanceFormatted = balance / Math.pow(10, decimals);
-    
+    const formatBalance = (wei) => {
+        if (!wei) return '0.00';
+        return parseFloat(ethers.utils.formatUnits(wei.toString(), FIXED_DECIMALS)).toFixed(2);
+    };
+
+    const handlePercent = (percent) => {
+        if (!balanceWei) return;
+        const total = parseFloat(ethers.utils.formatUnits(balanceWei.toString(), FIXED_DECIMALS));
+        setAmount((total * percent).toFixed(4));
+    };
+
+    const getTokenContract = () => {
+        const signer = library.getSigner();
+        return new ethers.Contract(tokenContractAddress, tokenAbi, signer);
+    };
+
+    const getStakingContract = () => {
+        const signer = library.getSigner();
+        return new ethers.Contract(stakingContractAddress, stakingAbi, signer);
+    };
+
     useEffect(() => {
-        if (!walletAddress) return;
-        
-        const fetchAllowance = async () => {
-            try {
-                const provider = new ethers.providers.JsonRpcProvider(RpcProvider);
-                const contract = new ethers.Contract(tokenContractAddress, tokenAbi, provider);
-                const res = await contract.allowance(walletAddress, stakingContractAddress);
-                setAllowance(parseFloat(ethers.utils.formatUnits(res, decimals)));
-            } catch (error) {
-                console.error("Allowance fetch error:", error);
-            }
-        };
-        fetchAllowance();
-    }, [walletAddress, decimals]);
+        if (account && library) checkAllowance();
+    }, [account, library]);
 
-    const handleMax = () => {
-        setAmount(balanceFormatted.toString());
-    };
-
-    const updateBalance = async (signer) => {
-        const contract = new ethers.Contract(tokenContractAddress, tokenAbi, signer);
-        const tbalance = await contract.balanceOf(walletAddress);
-        dispatch(setBalance(parseInt(tbalance.toString())));
-    };
-
-    const handleAction = async () => {
-        // --- 1. VALIDATION CHECK ---
-        // We use Number() to cover cases like "0" or "0.0"
-        if (!amount || Number(amount) <= 0 || isNaN(Number(amount))) {
-            toast.error("Please enter a valid amount greater than 0");
-            return; // Stop execution here
-        }
-
-        setLoading(true);
+    const checkAllowance = async () => {
         try {
-            const { ethereum } = window;
-            if (!ethereum) throw new Error("No wallet found");
-
-            const provider = new ethers.providers.Web3Provider(ethereum);
-            const signer = provider.getSigner();
-            
-            // Check Allowance
-            if (parseFloat(amount) > allowance) {
-                const tokenContract = new ethers.Contract(tokenContractAddress, tokenAbi, signer);
-                const tx = await tokenContract.approve(stakingContractAddress, ethers.constants.MaxUint256);
-                await toast.promise(tx.wait(), {
-                    pending: 'Approving EBONDS...',
-                    success: 'Approved successfully!',
-                    error: 'Approval failed'
-                });
-                setAllowance(parseFloat(amount) + 1000); // Optimistic update
-            } else {
-                // Deposit
-                const stakingContract = new ethers.Contract(stakingContractAddress, abi, signer);
-                const bigAmount = ethers.utils.parseUnits(amount.toString(), decimals);
-                
-                const tx = await stakingContract.deposit(bigAmount);
-                await toast.promise(tx.wait(), {
-                    pending: 'Staking EBONDS...',
-                    success: 'Staked successfully!',
-                    error: 'Staking failed'
-                });
-                
-                setAmount('');
-                await update(); // Update parent stats
-                await updateBalance(signer);
-            }
-        } catch (error) {
-            console.error(error);
-            // Handle specific Metamask errors or generic ones
-            toast.error(error?.data?.message || error.message || "Transaction failed");
-        } finally {
-            setLoading(false);
-        }
+            const contract = getTokenContract();
+            const res = await contract.allowance(account, stakingContractAddress);
+            setAllowance(parseFloat(ethers.utils.formatUnits(res, FIXED_DECIMALS)));
+        } catch (error) { console.error("Allowance error", error); }
     };
 
-    const isApprovalNeeded = parseFloat(amount) > allowance;
+    const onApprove = async () => {
+        setIsApproving(true);
+        try {
+            const contract = getTokenContract();
+            const tx = await contract.approve(stakingContractAddress, ethers.constants.MaxUint256);
+            await tx.wait();
+            toast.success("Approval Successful!");
+            checkAllowance();
+        } catch (error) { toast.error("Approval Failed"); }
+        setIsApproving(false);
+    };
+
+    const onStake = async () => {
+        if (!amount || parseFloat(amount) <= 0) return;
+        setIsStaking(true);
+        try {
+            const contract = getStakingContract();
+            
+            // FIX: Use FIXED_DECIMALS to parse input
+            const cleanAmount = amount.toString();
+            const weiAmount = ethers.utils.parseUnits(cleanAmount, FIXED_DECIMALS);
+            
+            const tx = await contract.deposit(weiAmount);
+            await tx.wait();
+            
+            toast.success("Staking Successful!");
+            setAmount('');
+            if (update) update();
+        } catch (error) { 
+            console.error(error);
+            toast.error("Staking Failed: " + (error.message || "Unknown error")); 
+        }
+        setIsStaking(false);
+    };
+
+    const needsApproval = allowance < parseFloat(amount || 0);
 
     return (
-        <Card sx={{ height: '100%', borderRadius: 4, boxShadow: '0 8px 30px rgba(0,0,0,0.04)' }}>
-            <CardContent sx={{ p: 4 }}>
-                <Typography variant="h5" fontWeight={700} gutterBottom>
-                    Stake EBONDS
-                </Typography>
-                <Typography variant="body2" color="text.secondary" mb={3}>
-                    Stake your tokens to earn ESIR rewards.
-                </Typography>
+        <Paper sx={{ p: 4, height: '100%', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h5" fontWeight={700}>Stake EBONDS</Typography>
+                <Chip 
+                    icon={<AccountBalanceWalletIcon sx={{ fontSize: '1rem !important' }} />} 
+                    label={`${formatBalance(balanceWei)} Available`} 
+                    variant="outlined" 
+                    size="small" 
+                    sx={{ borderColor: 'rgba(255,255,255,0.1)', fontWeight: 600 }}
+                />
+            </Box>
 
-                <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: 2, mb: 3 }}>
-                    <Stack direction="row" justifyContent="space-between" mb={1}>
-                        <Typography variant="caption" color="text.secondary">Amount to Stake</Typography>
-                        <Typography variant="caption" fontWeight={600} display="flex" alignItems="center" gap={0.5}>
-                            <AccountBalanceWalletIcon sx={{ fontSize: 14 }} /> 
-                            {balanceFormatted.toFixed(2)} Available
-                        </Typography>
-                    </Stack>
-                    
-                    <TextField
-                        fullWidth
-                        variant="standard"
-                        placeholder="0.00"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        InputProps={{
-                            disableUnderline: true,
-                            sx: { fontSize: '1.5rem', fontWeight: 700 },
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <Button 
-                                        onClick={handleMax} 
-                                        size="small" 
-                                        sx={{ borderRadius: 20, fontWeight: 700, minWidth: 'auto', px: 2 }}
-                                    >
-                                        MAX
-                                    </Button>
-                                    <Typography variant="subtitle1" fontWeight={700} ml={1}>
-                                        EBONDS
-                                    </Typography>
-                                </InputAdornment>
-                            )
-                        }}
-                    />
-                </Box>
-
-                <Button
+            <Box sx={{ position: 'relative', mb: 4 }}>
+                <TextField
                     fullWidth
-                    variant="contained"
-                    size="large"
-                    // Removed the complex disabled logic so the user can CLICK and see the error toast if 0
-                    disabled={!walletAddress || loading} 
-                    onClick={handleAction}
-                    sx={{ 
-                        borderRadius: 3, 
-                        py: 1.5, 
-                        fontSize: '1rem', 
-                        fontWeight: 700,
-                        boxShadow: 'none'
+                    placeholder="0.00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    type="number"
+                    variant="outlined"
+                    InputProps={{
+                        endAdornment: <InputAdornment position="end"><Typography fontWeight={700}>EBONDS</Typography></InputAdornment>,
+                        sx: { 
+                            bgcolor: 'rgba(0,0,0,0.2)', 
+                            fontSize: '1.5rem', 
+                            fontWeight: 600,
+                            fontFamily: '"Space Grotesk", sans-serif',
+                            '& fieldset': { borderColor: 'rgba(255,255,255,0.1) !important' },
+                            '&.Mui-focused fieldset': { borderColor: '#d29d5c !important' } 
+                        }
                     }}
-                >
-                    {!walletAddress ? 'Connect Wallet' : loading ? 'Processing...' : isApprovalNeeded ? 'Approve EBONDS' : 'Stake Now'}
-                </Button>
+                />
+                <Stack direction="row" spacing={1} sx={{ mt: 1.5, justifyContent: 'flex-end' }}>
+                    {[0.25, 0.50, 0.75, 1].map((pct) => (
+                        <Button 
+                            key={pct}
+                            variant="text" 
+                            size="small" 
+                            onClick={() => handlePercent(pct)}
+                            sx={{ 
+                                minWidth: 40, 
+                                p: 0.5, 
+                                color: 'text.secondary',
+                                bgcolor: 'rgba(255,255,255,0.02)',
+                                '&:hover': { color: 'primary.main', bgcolor: 'rgba(210, 157, 92, 0.1)' } 
+                            }}
+                        >
+                            {pct * 100}%
+                        </Button>
+                    ))}
+                </Stack>
+            </Box>
 
-                <Box sx={{ px: 1, mt: 2 }}>
-                   <Slider 
-                        value={
-                            amount && balanceFormatted > 0 
-                            ? (Math.min(Number(amount), balanceFormatted) / balanceFormatted) * 100 
-                            : 0
-                        } 
-                        onChange={(e, val) => setAmount(((balanceFormatted * val) / 100).toFixed(2))}
-                        size="small"
-                        disabled={balanceFormatted <= 0} // Disable if no balance
-                    />
-                </Box>
-            </CardContent>
-        </Card>
+            <Box>
+                {needsApproval ? (
+                    <Button
+                        fullWidth
+                        variant="contained"
+                        size="large"
+                        disabled={isApproving || !account}
+                        onClick={onApprove}
+                        sx={{ py: 2, fontSize: '1.1rem' }}
+                    >
+                        {isApproving ? <CircularProgress size={24} color="inherit"/> : 'Approve Contract'}
+                    </Button>
+                ) : (
+                    <Button
+                        fullWidth
+                        variant="contained"
+                        size="large"
+                        disabled={isStaking || !amount || parseFloat(amount) <= 0}
+                        onClick={onStake}
+                        startIcon={!isStaking && <ArrowDownwardIcon />}
+                        sx={{ py: 2, fontSize: '1.1rem' }}
+                    >
+                        {isStaking ? <CircularProgress size={24} color="inherit"/> : 'Confirm Deposit'}
+                    </Button>
+                )}
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 2 }}>
+                    Note: Staking requires a one-time approval transaction.
+                </Typography>
+            </Box>
+        </Paper>
     );
-}
+};
 
 export default StakeCard;

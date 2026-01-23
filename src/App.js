@@ -5,6 +5,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline'; 
 import { Web3ReactProvider } from '@web3-react/core';
 import { ethers } from 'ethers';
+import { ToastContainer } from 'react-toastify'; // Import Container
 
 // Project imports
 import { routes } from './routes';
@@ -30,33 +31,52 @@ const getLibrary = (provider) => {
 
 const reload = () => window.location.reload();
 
-class App extends React.PureComponent {
-  render() {
-    return (
-      <Web3ReactProvider getLibrary={getLibrary}>
-        <Provider store={store}>
-          <ThemeProvider theme={theme}>
-            <CssBaseline /> 
-            <ScrollToTop />
-            <BaseLayout history={history}>
-              <Routes>
-                {routes.map((route) => {
-                  if (route.isProtected)
-                    return (
-                      <Route key={route.path} path={route.path} element={<PrivateRoute />}>
-                        <Route key={route.path} path={route.path} exact={route.exact} element={route.component} />
-                      </Route>
-                    )
-                  return (<Route key={route.path} path={route.path} exact={route.exact} element={route.component} />)
-                })}
-                <Route path="/TermsAndConditions.html" onEnter={reload} />
-              </Routes>
-            </BaseLayout>
-          </ThemeProvider>
-        </Provider>
-      </Web3ReactProvider>
-    )
-  }
+const App = () => {
+  return (
+    <Web3ReactProvider getLibrary={getLibrary}>
+      <Provider store={store}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline /> 
+          <ScrollToTop />
+          
+          {/* NOTIFICATION SYSTEM ACTIVATED */}
+          <ToastContainer 
+            position="bottom-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={true}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="dark"
+            toastStyle={{ 
+              backgroundColor: '#0a1019', 
+              border: '1px solid rgba(210, 157, 92, 0.3)', 
+              color: '#fff',
+              fontFamily: '"Space Grotesk", sans-serif'
+            }}
+          />
+
+          <BaseLayout history={history}>
+            <Routes>
+              {routes.map((route) => {
+                if (route.isProtected)
+                  return (
+                    <Route key={route.path} path={route.path} element={<PrivateRoute />}>
+                      <Route key={route.path} path={route.path} exact={route.exact} element={route.component} />
+                    </Route>
+                  )
+                return (<Route key={route.path} path={route.path} exact={route.exact} element={route.component} />)
+              })}
+              <Route path="/TermsAndConditions.html" onEnter={reload} />
+            </Routes>
+          </BaseLayout>
+        </ThemeProvider>
+      </Provider>
+    </Web3ReactProvider>
+  );
 }
 
 export default App;

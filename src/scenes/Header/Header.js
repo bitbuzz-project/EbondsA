@@ -1,221 +1,137 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
-  AppBar, 
-  Box, 
-  Toolbar, 
-  IconButton, 
-  Button, 
-  Drawer, 
-  List, 
-  ListItem, 
-  ListItemText,
-  Stack,
-  Chip
-} from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
+    AppBar, Box, Toolbar, Button, Stack, Drawer, IconButton, List, ListItem, ListItemText, useTheme, Chip 
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-
 import { useWeb3React } from '@web3-react/core';
-import { injected } from '../../connector';
-import { useSelector } from 'react-redux';
-import { useNavigate, useLocation } from "react-router-dom";
-import store from "../../app/store";
-import { setAddress, setBalance, setDecimal, setNewTokenBalance, setNewTokenDecimal } from './../../features/userWalletSlice';
-import { ethers } from "ethers";
-import { tokenContractAddress, abi as tokenAbi } from "../AllocationStaking/components/StakeCard/services/consts";
-import { newTokenContractAddress, abi as newTokenAbi } from '../AllocationStaking/components/StakeCard/services/newTokenconsts';
-
-// Import your existing logos/assets
-import Logo from '../../resources/logoheader.svg'; 
-import arbitrumLogo from '../../resources/arbitrum.svg';
-
-import AccountDialog from "./components/accountDialog/AccountDialog";
-// import ErrorDialog from "../ErrorDialog/ErrorDialog"; <--- REMOVED
-
-const pages = [
-  { name: 'Home', link: '/', external: true },
-  { name: 'Dashboard', link: '/dashboard', external: false },
-  { name: 'Sale', link: '/sales', external: false }, 
-  { name: 'Earn', link: '/allocation-staking', external: false },
-  { name: 'Swap', link: '/swap', external: false },
-  { name: 'Docs', link: 'https://medium.com/@EBONDS.Finance/ebonds-finance-whitepaper-69d5164235ea', external: true },
-];
-
-const { ethereum } = window;
+import AccountDialog from './components/accountDialog/AccountDialog';
+import Logo from '../../resources/logo_white.svg'; 
 
 const Header = () => {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const { activate, deactivate, account } = useWeb3React();
-  const [showDialog, setShowDialog] = useState(false);
-  
-  // We no longer need local error state since we use toastify or inline errors now
-  // const [errorDialog, setErrorDialog] = useState({ show: false, message: '' }); 
+    const [isScrolled, setIsScrolled] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const [showDialog, setShowDialog] = useState(false); // Controls the Dialog
+    
+    const { account } = useWeb3React();
+    const navigate = useNavigate();
+    const location = useLocation();
 
-  const navigate = useNavigate();
-  const location = useLocation();
+    useEffect(() => {
+        const handleScroll = () => setIsScrolled(window.scrollY > 20);
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
-  // Redux Data
-  // const balance = useSelector(state => state.userWallet.balance);
-  // const decimals = useSelector(state => state.userWallet.decimal);
+    const pages = [
+        { name: 'Home', link: '/' },
+        { name: 'Staking', link: '/allocation-staking' },
+        { name: 'Private Sale', link: '/sales' },
+        { name: 'Swap', link: '/swap' }, 
+        { name: 'Dashboard', link: '/dashboard' }
+    ];
 
-  // --- Wallet Logic ---
-  useEffect(() => {
-    if (account) {
-      store.dispatch(setAddress(account));
-      const fetchBalances = async () => {
-        try {
-          const provider = new ethers.providers.Web3Provider(ethereum);
-          const signer = provider.getSigner();
-          
-          const oldTokenContract = new ethers.Contract(tokenContractAddress, tokenAbi, signer);
-          const oldDecimals = await oldTokenContract.decimals();
-          const oldBalance = await oldTokenContract.balanceOf(account);
-
-          const newTokenContract = new ethers.Contract(newTokenContractAddress, newTokenAbi, signer);
-          const newDecimals = await newTokenContract.decimals();
-          const newBalance = await newTokenContract.balanceOf(account);
-
-          store.dispatch(setDecimal(oldDecimals));
-          store.dispatch(setBalance(parseInt(oldBalance.toString())));
-          store.dispatch(setNewTokenDecimal(newDecimals));
-          store.dispatch(setNewTokenBalance(parseInt(newBalance.toString())));
-        } catch (err) {
-          console.error("Error fetching balances:", err);
-        }
-      };
-      fetchBalances();
-    }
-  }, [account]);
-
-  useEffect(() => {
-    activate(injected, (err) => console.log("Auto-connect non-critical error", err));
-  }, [activate]);
-
-  const handleConnect = () => {
-    activate(injected);
-  };
-
-  const handleMobileMenuToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
-
-  const handleNavClick = (page) => {
-    if (page.external) {
-      window.location.href = page.link;
-    } else {
-      navigate(page.link);
-    }
-    setMobileOpen(false);
-  };
-
-  return (
-    <>
-      <AppBar position="fixed" color="inherit" elevation={0} sx={{ borderBottom: '1px solid', borderColor: 'divider', backdropFilter: 'blur(20px)', bgcolor: 'rgba(255,255,255,0.9)' }}>
-        <Box maxWidth="xl" sx={{ mx: 'auto', width: '100%', px: 3 }}>
-          <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
-            
-            {/* LOGO AREA */}
-            <Box 
-              component="img" 
-              src={Logo} 
-              alt="Logo" 
-              sx={{ height: 40, cursor: 'pointer', mr: 4 }} 
-              onClick={() => navigate('/')}
-            />
-
-            {/* DESKTOP MENU */}
-            <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 1 }}>
-              {pages.map((page) => (
-                <Button
-                  key={page.name}
-                  onClick={() => handleNavClick(page)}
-                  sx={{
-                    my: 2,
-                    color: location.pathname === page.link ? 'primary.main' : 'text.primary',
-                    fontWeight: location.pathname === page.link ? 700 : 500,
-                    '&:hover': { color: 'primary.main', bgcolor: 'transparent' }
-                  }}
-                >
-                  {page.name}
-                </Button>
-              ))}
-            </Box>
-
-            {/* RIGHT SIDE ACTIONS */}
-            <Stack direction="row" spacing={2} alignItems="center">
-              
-              {/* Network Chip */}
-              <Chip 
-                icon={<img src={arbitrumLogo} alt="Arb" width={20} />} 
-                label="Arbitrum" 
-                variant="outlined" 
-                sx={{ display: { xs: 'none', sm: 'flex' }, fontWeight: 600, borderColor: 'rgba(0,0,0,0.1)' }}
-              />
-
-              {/* Connect Wallet Button */}
-              {!account ? (
-                <Button 
-                  variant="contained" 
-                  color="primary" 
-                  startIcon={<AccountBalanceWalletIcon />}
-                  onClick={() => setShowDialog(true)}
-                  sx={{ borderRadius: 50, px: 3 }}
-                >
-                  Connect Wallet
-                </Button>
-              ) : (
-                <Button 
-                  variant="outlined" 
-                  onClick={() => setShowDialog(true)}
-                  sx={{ borderRadius: 50, borderColor: 'primary.main', color: 'primary.main', fontWeight: 700 }}
-                >
-                  {account.substring(0, 6)}...{account.substring(account.length - 4)}
-                </Button>
-              )}
-
-              {/* Mobile Menu Icon */}
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                edge="start"
-                onClick={handleMobileMenuToggle}
-                sx={{ display: { md: 'none' }, ml: 1 }}
-              >
-                <MenuIcon />
-              </IconButton>
-            </Stack>
-
-          </Toolbar>
-        </Box>
-      </AppBar>
-
-      {/* MOBILE DRAWER */}
-      <Drawer
-        anchor="right"
-        open={mobileOpen}
-        onClose={handleMobileMenuToggle}
-        PaperProps={{ sx: { width: 250, pt: 4 } }}
-      >
-        <List>
-          {pages.map((page) => (
-            <ListItem button key={page.name} onClick={() => handleNavClick(page)}>
-              <ListItemText 
-                primary={page.name} 
-                primaryTypographyProps={{ 
-                  fontWeight: location.pathname === page.link ? 700 : 500,
-                  color: location.pathname === page.link ? 'primary.main' : 'text.primary' 
+    return (
+        <>
+            <AppBar 
+                position="fixed" 
+                sx={{ 
+                    zIndex: 1100, // MAX PRIORITY
+                    bgcolor: isScrolled ? 'rgba(5, 9, 15, 0.95)' : 'transparent',
+                    backdropFilter: isScrolled ? 'blur(20px)' : 'none',
+                    borderBottom: isScrolled ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                    boxShadow: 'none',
+                    transition: 'all 0.3s ease-in-out',
+                    py: isScrolled ? 0.5 : 2 
                 }}
-              />
-            </ListItem>
-          ))}
-        </List>
-      </Drawer>
-      
-      {/* DIALOGS */}
-      <AccountDialog show={showDialog} setShow={setShowDialog} address={account} disconnect={deactivate} />
-      {/* <ErrorDialog show={errorDialog.show} message={errorDialog.message} setError={setErrorDialog} /> */}
-    </>
-  );
+            >
+                <Box maxWidth="xl" sx={{ mx: 'auto', width: '100%', px: { xs: 2, md: 6 } }}>
+                    <Toolbar disableGutters sx={{ justifyContent: 'space-between', height: 70 }}>
+                        
+                        <Box component="img" src={Logo} alt="Ebonds" sx={{ height: 32, cursor: 'pointer' }} onClick={() => navigate('/')} />
+
+                        <Stack direction="row" spacing={4} sx={{ display: { xs: 'none', md: 'flex' } }}>
+                            {pages.map((page) => {
+                                const isActive = location.pathname === page.link;
+                                return (
+                                    <Button
+                                        key={page.name}
+                                        onClick={() => navigate(page.link)}
+                                        sx={{
+                                            color: isActive ? '#d29d5c' : '#94a3b8',
+                                            fontSize: '0.95rem',
+                                            fontWeight: isActive ? 700 : 500,
+                                            textTransform: 'none',
+                                            minWidth: 'auto',
+                                            '&:hover': { color: '#d29d5c', bgcolor: 'transparent' }
+                                        }}
+                                        disableRipple
+                                    >
+                                        {page.name}
+                                    </Button>
+                                );
+                            })}
+                        </Stack>
+
+                        <Stack direction="row" spacing={2} alignItems="center">
+                            {!account ? (
+                                <Button 
+                                    variant="contained" 
+                                    onClick={() => setShowDialog(true)} // Opens Dialog
+                                    sx={{ 
+                                        borderRadius: 1, bgcolor: '#d29d5c', color: '#000', fontWeight: 700, px: 3,
+                                        '&:hover': { bgcolor: '#e3b578' }
+                                    }}
+                                >
+                                    Connect Wallet
+                                </Button>
+                            ) : (
+                                <Button 
+                                    variant="outlined" 
+                                    startIcon={<AccountBalanceWalletIcon />}
+                                    onClick={() => setShowDialog(true)} // Opens Dialog
+                                    sx={{ 
+                                        borderRadius: 1, borderColor: 'rgba(255,255,255,0.2)', color: 'white',
+                                        '&:hover': { borderColor: '#d29d5c', color: '#d29d5c' }
+                                    }}
+                                >
+                                    {account.substring(0, 6)}...{account.substring(account.length - 4)}
+                                </Button>
+                            )}
+
+                            <IconButton color="inherit" onClick={() => setMobileOpen(!mobileOpen)} sx={{ display: { md: 'none' } }}>
+                                <MenuIcon />
+                            </IconButton>
+                        </Stack>
+
+                    </Toolbar>
+                </Box>
+            </AppBar>
+
+            <Drawer
+                anchor="right"
+                open={mobileOpen}
+                onClose={() => setMobileOpen(false)}
+                PaperProps={{ sx: { width: 240, bgcolor: '#0a1019', borderLeft: '1px solid rgba(255,255,255,0.1)' } }}
+            >
+                <List sx={{ pt: 4 }}>
+                    {pages.map((page) => (
+                        <ListItem button key={page.name} onClick={() => { navigate(page.link); setMobileOpen(false); }}>
+                            <ListItemText primary={page.name} primaryTypographyProps={{ fontWeight: 700, color: 'white' }} />
+                        </ListItem>
+                    ))}
+                </List>
+            </Drawer>
+
+            {/* Passing BOTH setOpen and handleClose patterns to be safe */}
+            <AccountDialog 
+                open={showDialog} 
+                setOpen={setShowDialog} 
+                onClose={() => setShowDialog(false)} 
+            />
+        </>
+    );
 };
 
 export default Header;

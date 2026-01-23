@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useDispatch } from 'react-redux'; // Removed useSelector for decimals
 import { ethers } from 'ethers';
-import { Box, Grid, Typography, Paper, Skeleton } from '@mui/material';
-import { toast } from 'react-toastify';
+import { Box, Grid, Typography, Paper, Skeleton, Button, Chip, Divider, Stack } from '@mui/material';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import { useWeb3React } from '@web3-react/core';
+import { injected } from '../../connector';
 
 // Components
 import StakeCard from './components/StakeCard/StakeCard';
@@ -11,28 +14,41 @@ import WithdrawCard from './components/WithdrawCard/WithdrawCard';
 // Services & Store
 import { abi, stakingContractAddress } from './services/consts';
 import { RpcProvider } from '../../consts/rpc';
-// --- FIXED IMPORT BELOW ---
 import { setBalance as setStakeBalance } from '../../features/stakingSlice'; 
 import { fetchUSDTPrice, fetchEbPrice } from '../../services/prices';
 
-// Simple Stat Component
-const HeaderStat = ({ label, value, subtext }) => (
-    <Box>
-        <Typography variant="body2" color="text.secondary" fontWeight={600} gutterBottom>
+// --- CONSTANTS ---
+const FIXED_DECIMALS = 18; // Hardcoded to prevent Redux errors
+
+const CockpitStat = ({ label, value, subtext, highlight = false }) => (
+    <Box sx={{ 
+        p: 3, 
+        border: '1px solid',
+        borderColor: highlight ? 'primary.main' : 'rgba(255,255,255,0.1)',
+        bgcolor: highlight ? 'rgba(210, 157, 92, 0.05)' : 'rgba(0,0,0,0.2)',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center'
+    }}>
+        <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.15em', mb: 1, fontWeight: 700 }}>
             {label}
         </Typography>
-        <Typography variant="h4" fontWeight={800} color="text.primary">
+        <Typography variant="h4" fontWeight={700} sx={{ color: highlight ? 'primary.main' : 'text.primary' }}>
             {value}
         </Typography>
-        {subtext && <Typography variant="caption" color="success.main">{subtext}</Typography>}
+        {subtext && (
+            <Typography variant="caption" sx={{ color: 'success.main', mt: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                {subtext}
+            </Typography>
+        )}
     </Box>
 );
 
 const AllocationStaking = () => {
+    const { activate, account } = useWeb3React();
     const dispatch = useDispatch();
-    const address = useSelector(state => state.userWallet.address);
-    const decimals = useSelector(state => state.userWallet.decimal);
-
+    
     // State
     const [stats, setStats] = useState({
         tvl: 0,
@@ -44,36 +60,37 @@ const AllocationStaking = () => {
     });
     const [loading, setLoading] = useState(true);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
+            setLoading(true);
             const provider = new ethers.providers.JsonRpcProvider(RpcProvider);
             const contract = new ethers.Contract(stakingContractAddress, abi, provider);
 
-            // 1. Fetch Prices
-            const esirP = await fetchUSDTPrice();
-            const ebondP = await fetchEbPrice();
+            const [esirP, ebondP] = await Promise.all([
+                fetchUSDTPrice().catch(() => 0), 
+                fetchEbPrice().catch(() => 0)
+            ]);
 
-            // 2. Fetch Contract Stats
             const totalDepositsRaw = await contract.totalDeposits();
             const paidOutRaw = await contract.paidOut();
             
-            const totalDeposits = parseFloat(ethers.utils.formatUnits(totalDepositsRaw, decimals));
-            const paidOut = parseFloat(ethers.utils.formatUnits(paidOutRaw, decimals));
+            // FIX: Explicitly format using FIXED_DECIMALS (18)
+            const totalDeposits = parseFloat(ethers.utils.formatUnits(totalDepositsRaw, FIXED_DECIMALS));
+            const paidOut = parseFloat(ethers.utils.formatUnits(paidOutRaw, FIXED_DECIMALS));
 
-            // 3. APY Calculation
-            const apyVal = ((((1 + (esirP / (0.865 * 1000))) ** 365) - 1) * 100);
+            const safePrice = esirP > 0 ? esirP : 1;
+            const apyVal = ((((1 + (safePrice / (0.865 * 1000))) ** 365) - 1) * 100);
 
-            // 4. User Specific Data
             let pendingVal = 0;
-            if (address) {
-                 const userInfo = await contract.userInfo(address);
-                 dispatch(setStakeBalance(parseInt(userInfo.amount.toString()))); // Update Redux
-
-                 // Try fetching pending
+            if (account) {
                  try {
-                    const pendingRaw = await contract.pending(address); 
-                    pendingVal = parseFloat(ethers.utils.formatUnits(pendingRaw, decimals));
-                 } catch(e) { console.warn("Pending fetch error", e); }
+                    const userInfo = await contract.userInfo(account);
+                    // Store the raw Wei string in Redux
+                    dispatch(setStakeBalance(userInfo.amount.toString())); 
+
+                    const pendingRaw = await contract.pending(account); 
+                    pendingVal = parseFloat(ethers.utils.formatUnits(pendingRaw, FIXED_DECIMALS));
+                 } catch(e) { console.warn("User data fetch error", e); }
             }
 
             setStats({
@@ -87,74 +104,128 @@ const AllocationStaking = () => {
             setLoading(false);
 
         } catch (error) {
-            console.error("Staking Page Error:", error);
+            console.error("Staking Data Error:", error);
             setLoading(false);
         }
-    };
+    }, [account, dispatch]);
 
     useEffect(() => {
         fetchData();
-        const interval = setInterval(fetchData, 30000); // Live update
-        return () => clearInterval(interval);
-    }, [address, decimals]);
+    }, [fetchData]);
 
     return (
-        <Box sx={{ pb: 8 }}>
+        <Box sx={{ pb: 8, pt: { xs: 12, md: 20 } }}> {/* Increased Top Padding */}
             
-            {/* 1. Header & Stats Section */}
-            <Box sx={{ mb: 6 }}>
-                <Typography variant="h2" fontWeight={800} gutterBottom>
-                    Earn ESIR
-                </Typography>
-                <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 700, mb: 4 }}>
-                    Stake your EBONDS to earn ESIR rewards. 
-                  
-                </Typography>
-
-                {/* Stats Row */}
-                <Paper sx={{ p: 4, borderRadius: 4, bgcolor: 'background.paper', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-                    <Grid container spacing={4} divider={<Box sx={{ borderRight: '1px solid rgba(0,0,0,0.1)', height: 50, my: 'auto', display: { xs: 'none', md: 'block' } }} />}>
-                        <Grid item xs={12} md={3}>
-                            <HeaderStat 
-                                label="Annual Yield (APY)" 
-                                value={loading ? <Skeleton width={100} /> : `${stats.apy.toFixed(2)}%`} 
-                               
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={3}>
-                            <HeaderStat 
-                                label="Total EBONDS staked" 
-                                value={loading ? <Skeleton width={100} /> : `${stats.tvl.toLocaleString()}`} 
-                               
-                            />
-                        </Grid>
-                         <Grid item xs={12} md={3}>
-                            <HeaderStat 
-                                label="Rewards Distributed" 
-                                value={loading ? <Skeleton width={100} /> : `${stats.totalDistributed.toLocaleString()}`} 
-                                subtext="Total ESIR distributed"
-                            />
-                        </Grid>
-                         <Grid item xs={12} md={3}>
-                            <HeaderStat 
-                                label="My Pending Rewards" 
-                                value={loading ? <Skeleton width={100} /> : `${stats.myPending.toFixed(4)}`} 
-                                subtext="ESIR Available"
-                            />
-                        </Grid>
-                    </Grid>
-                </Paper>
+            <Box sx={{ mb: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
+                <Box>
+                    <Typography variant="h2" gutterBottom>
+                        Staking Dashboard
+                    </Typography>
+                    <Typography variant="h6" color="text.secondary" fontWeight={400}>
+                        Manage your positions and track yields in real-time.
+                    </Typography>
+                </Box>
+                <Button 
+                    startIcon={<RefreshIcon />} 
+                    onClick={fetchData} 
+                    variant="outlined"
+                    size="small"
+                    disabled={loading}
+                    sx={{ borderColor: 'rgba(255,255,255,0.1)' }}
+                >
+                    Refresh
+                </Button>
             </Box>
 
-            {/* 2. Interaction Cards */}
-            <Grid container spacing={4}>
-                <Grid item xs={12} md={6}>
-                    <StakeCard update={fetchData} />
+            <Grid container spacing={3} sx={{ mb: 6 }}>
+                <Grid item xs={12} md={4}>
+                    <CockpitStat 
+                        label="Current APY" 
+                        value={loading ? <Skeleton width={100} /> : `${stats.apy.toFixed(2)}%`}
+                        highlight={true} 
+                    />
                 </Grid>
-                <Grid item xs={12} md={6}>
-                    <WithdrawCard update={fetchData} />
+                <Grid item xs={12} md={4}>
+                    <CockpitStat 
+                        label="Total Value Locked" 
+                        value={loading ? <Skeleton width={120} /> : `${stats.tvl.toLocaleString()} EBONDS`} 
+                    />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                    <CockpitStat 
+                        label="Total Rewards Paid" 
+                        value={loading ? <Skeleton width={120} /> : `${stats.totalDistributed.toLocaleString()} ESIR`} 
+                    />
                 </Grid>
             </Grid>
+
+            <Box sx={{ position: 'relative' }}>
+                {!account && (
+                    <Box sx={{
+                        position: 'absolute',
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        zIndex: 10,
+                        backdropFilter: 'blur(8px)',
+                        bgcolor: 'rgba(10, 16, 25, 0.6)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexDirection: 'column',
+                        borderRadius: 2,
+                        border: '1px solid rgba(255,255,255,0.1)'
+                    }}>
+                        <AccountBalanceWalletIcon sx={{ fontSize: 60, mb: 2, color: 'text.secondary' }} />
+                        <Typography variant="h5" fontWeight={700} gutterBottom>
+                            Wallet Not Connected
+                        </Typography>
+                        <Typography color="text.secondary" sx={{ mb: 3 }}>
+                            Please connect your wallet to view your positions.
+                        </Typography>
+                        <Button 
+                            variant="contained" 
+                            size="large"
+                            onClick={() => activate(injected)}
+                            sx={{ px: 4, py: 1.5 }}
+                        >
+                            Connect Wallet
+                        </Button>
+                    </Box>
+                )}
+
+                <Grid container spacing={4}>
+                    <Grid item xs={12} md={4}>
+                        <Paper sx={{ p: 4, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                            <Box>
+                                <Typography variant="h6" gutterBottom>My Rewards</Typography>
+                                <Divider sx={{ mb: 3, borderColor: 'rgba(255,255,255,0.1)' }} />
+                                
+                                <Box sx={{ mb: 4 }}>
+                                    <Typography variant="body2" color="text.secondary" gutterBottom>PENDING ESIR</Typography>
+                                    <Typography variant="h3" color="primary.main" fontWeight={700}>
+                                        {loading ? <Skeleton /> : stats.myPending.toFixed(4)}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                        ≈ ${(stats.myPending * stats.esirPrice).toFixed(2)} USD
+                                    </Typography>
+                                </Box>
+                            </Box>
+                             <Box sx={{ p: 2, bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1 }}>
+                                <Typography variant="caption" color="text.secondary">
+                                    Rewards are calculated per block. You can claim at any time.
+                                </Typography>
+                            </Box>
+                        </Paper>
+                    </Grid>
+
+                    <Grid item xs={12} md={8}>
+                        <Stack spacing={4}>
+                            <StakeCard update={fetchData} />
+                            <WithdrawCard update={fetchData} />
+                        </Stack>
+                    </Grid>
+
+                </Grid>
+            </Box>
         </Box>
     );
 };

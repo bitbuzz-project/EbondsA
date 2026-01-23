@@ -28,7 +28,8 @@ import { useWeb3React } from '@web3-react/core';
 import { injected, walletconnect } from '../../../../connector';
 import { toast } from 'react-toastify';
 
-const AccountDialog = ({ show, setShow }) => {
+// FIX: Destructure 'open' and 'setOpen' instead of 'show' and 'setShow'
+const AccountDialog = ({ open, setOpen }) => {
   const { active, account, activate, deactivate } = useWeb3React();
 
   // --- CONNECT LOGIC WITH AUTO-SWITCH ---
@@ -36,7 +37,7 @@ const AccountDialog = ({ show, setShow }) => {
     try {
       // 1. Try connecting normally
       await activate(connector, undefined, true); 
-      setShow(false);
+      setOpen(false); // FIX: Use setOpen
       toast.success("Wallet Connected!");
     } catch (error) {
       console.error("Connection attempt failed:", error);
@@ -51,7 +52,7 @@ const AccountDialog = ({ show, setShow }) => {
               
               // Retry connection after successful switch
               await activate(connector);
-              setShow(false);
+              setOpen(false); // FIX: Use setOpen
               toast.success("Connected to Arbitrum!");
           } catch (switchError) {
               
@@ -69,7 +70,7 @@ const AccountDialog = ({ show, setShow }) => {
                           }],
                       });
                       await activate(connector);
-                      setShow(false);
+                      setOpen(false); // FIX: Use setOpen
                   } catch (addError) {
                       toast.error("Could not add Arbitrum network.");
                   }
@@ -86,7 +87,7 @@ const AccountDialog = ({ show, setShow }) => {
 
   const handleDisconnect = () => {
     deactivate();
-    setShow(false);
+    setOpen(false); // FIX: Use setOpen
     toast.info("Wallet Disconnected");
   };
 
@@ -97,8 +98,8 @@ const AccountDialog = ({ show, setShow }) => {
 
   return (
     <Dialog 
-      open={show} 
-      onClose={() => setShow(false)} 
+      open={open} // FIX: Use open prop
+      onClose={() => setOpen(false)} // FIX: Use setOpen
       maxWidth="xs" 
       fullWidth
       PaperProps={{
@@ -106,7 +107,8 @@ const AccountDialog = ({ show, setShow }) => {
             borderRadius: 4, 
             p: 1, 
             boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-            bgcolor: 'background.paper'
+            bgcolor: 'background.paper',
+            backgroundImage: 'linear-gradient(rgba(255,255,255,0.05), rgba(255,255,255,0))' // Subtle gradient
         }
       }}
     >
@@ -114,7 +116,7 @@ const AccountDialog = ({ show, setShow }) => {
         <Typography variant="h6" fontWeight={700}>
           {active ? 'Account' : 'Connect Wallet'}
         </Typography>
-        <IconButton onClick={() => setShow(false)} size="small">
+        <IconButton onClick={() => setOpen(false)} size="small">
           <CloseIcon />
         </IconButton>
       </Box>
@@ -213,7 +215,6 @@ const ConnectorButton = ({ name, icon, fallbackIcon, onClick }) => (
     }}
   >
     <Typography fontWeight={600}>{name}</Typography>
-    {/* Logic: Try to show Image, if fails or missing, show Fallback Icon, default to Wallet Icon */}
     {icon ? (
         <img src={icon} alt={name} width={30} onError={(e) => {e.target.style.display='none'}} />
     ) : (
