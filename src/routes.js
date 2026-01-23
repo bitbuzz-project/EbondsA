@@ -3,14 +3,21 @@ import AllocationStaking from "./scenes/AllocationStaking/AllocationStaking"
 import SalesPage from "./scenes/SalesPage/SalesPage"
 import AboutPage from "./scenes/AboutPage/AboutPage"
 import TermsAndConditions from "./scenes/TermsAndConditions/TermsAndConditions"
+import LandingPage from "./scenes/LandingPage/LandingPage"
 
 export const routes = [
   {
-    path: "/",
+    path: "/dashboard",
     exact: true,
     component: <MainScreen />,
   },
   
+   {
+    path: "/",
+    exact: true,
+    component: <LandingPage />,
+  },
+
   {
     path: "/allocation-staking",
     exact: true,

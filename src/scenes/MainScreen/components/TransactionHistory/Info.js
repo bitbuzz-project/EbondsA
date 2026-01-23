@@ -7,7 +7,6 @@ import {
   TableContainer, 
   TableHead, 
   TableRow, 
-  Paper,
   Box,
   Typography,
   Chip
@@ -18,15 +17,26 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 const TransactionHistory = ({ account, tokenContractAddress }) => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchTokenTransfers = async () => {
       if (!account || !tokenContractAddress) return;
 
+      // Use the environment variable, or fallback to a placeholder string if missing
+      const apiKey = process.env.REACT_APP_ARBISCAN_KEY; 
+
+      if (!apiKey) {
+        console.warn("Arbiscan API Key is missing. Check your .env file.");
+        setError("API configuration missing");
+        return;
+      }
+
       setLoading(true);
+      setError(null);
+      
       try {
-        const arbiscanApiKey = "9HJDRV54ZDGA8WIKPHV4RJMYVMVIHIMIEF"; // It's better to move this to .env
-        const apiUrl = `https://api.arbiscan.io/api?module=account&action=tokentx&address=${account}&contractaddress=${tokenContractAddress}&apikey=${arbiscanApiKey}`;
+        const apiUrl = `https://api.arbiscan.io/api?module=account&action=tokentx&address=${account}&contractaddress=${tokenContractAddress}&apikey=${apiKey}`;
         
         const response = await fetch(apiUrl);
         const data = await response.json();
@@ -44,9 +54,14 @@ const TransactionHistory = ({ account, tokenContractAddress }) => {
             .slice(0, 10);
 
           setTransactions(formatted);
+        } else if (data.message === "NOTOK") {
+            // Handle API errors gracefully
+            console.error("Arbiscan API Error:", data.result);
+            setError("Unable to fetch history");
         }
       } catch (error) {
-        console.error("History Error:", error);
+        console.error("History Network Error:", error);
+        setError("Network error");
       } finally {
         setLoading(false);
       }
@@ -56,6 +71,7 @@ const TransactionHistory = ({ account, tokenContractAddress }) => {
   }, [account, tokenContractAddress]);
 
   if (!account) return <Typography color="text.secondary" align="center">Connect wallet to view history</Typography>;
+  if (error) return <Typography color="error" align="center" variant="caption">{error}</Typography>;
   if (loading && transactions.length === 0) return <Typography color="text.secondary" align="center">Loading history...</Typography>;
   if (transactions.length === 0) return <Typography color="text.secondary" align="center">No transactions found</Typography>;
 

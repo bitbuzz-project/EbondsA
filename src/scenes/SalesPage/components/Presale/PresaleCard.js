@@ -10,36 +10,57 @@ import {
   Divider, 
   Chip,
   LinearProgress,
-  InputAdornment
+  InputAdornment,
+  Alert
 } from '@mui/material';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import TimerIcon from '@mui/icons-material/Timer';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
 import { toast } from 'react-toastify';
 
 const PresaleCard = () => {
   const [amount, setAmount] = useState('');
   
-  // Configuration for the "Special Sale"
+  // Configuration for the new sale structure
   const saleConfig = {
-    price: 0.05, // $0.05 per EBONDS
-    bonusPercent: 15, // 15% Bonus
-    vestingMonths: 6,
-    hardCap: 500000,
-    raised: 125000, // Mock raised amount
-    minBuy: 100, // $100 min
+    basePrice: 0.865, // $0.865 base price
+    buybackTarget: 0.90, // $0.90 buyback target
+    hardCap: 1000000, // $1M hard cap
+    raised: 245000, // Mock raised amount
+    minBuy: 2000, // $2000 min for tiered bonuses
   };
 
-  const tokenAmount = amount ? parseFloat(amount) / saleConfig.price : 0;
-  const bonusAmount = tokenAmount * (saleConfig.bonusPercent / 100);
-  const totalTokens = tokenAmount + bonusAmount;
+  // Tiered bonus calculation
+  const calculateBonus = (investmentAmount) => {
+    if (investmentAmount < 2000) return 0;
+    if (investmentAmount < 5000) return 10.3;
+    if (investmentAmount < 10000) return 14.5;
+    if (investmentAmount < 20000) return 18.6;
+    if (investmentAmount < 40000) return 20.7;
+    if (investmentAmount < 60000) return 24.9;
+    if (investmentAmount < 100000) return 26.9;
+    if (investmentAmount < 150000) return 31.1;
+    if (investmentAmount < 200000) return 35.3;
+    if (investmentAmount < 400000) return 39.4;
+    return 45.7;
+  };
+
+  const investAmount = amount ? parseFloat(amount) : 0;
+  const bonusPercent = calculateBonus(investAmount);
+  const baseTokens = investAmount / saleConfig.basePrice;
+  const bonusTokens = baseTokens * (bonusPercent / 100);
+  const totalTokens = baseTokens + bonusTokens;
+  const profitAtBuyback = totalTokens * saleConfig.buybackTarget - investAmount;
+  const roiPercent = investAmount > 0 ? (profitAtBuyback / investAmount) * 100 : 0;
 
   const handleBuy = () => {
     if(!amount || parseFloat(amount) < saleConfig.minBuy) {
         toast.error(`Minimum purchase is $${saleConfig.minBuy}`);
         return;
     }
-    toast.info("Contract integration coming soon!");
+    toast.info("Connecting to smart contract...");
+    // Add your contract integration here
   };
 
   return (
@@ -50,15 +71,23 @@ const PresaleCard = () => {
         
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ position: 'relative', zIndex: 1 }}>
             <Box>
-                <Chip label="Live Now" color="secondary" size="small" sx={{ mb: 1, fontWeight: 700 }} />
-                <Typography variant="h4" fontWeight={800}>Special Community Sale</Typography>
+                <Chip 
+                  label="Live Now" 
+                  color="secondary" 
+                  size="small" 
+                  icon={<SmartToyIcon />}
+                  sx={{ mb: 1, fontWeight: 700 }} 
+                />
+                <Typography variant="h4" fontWeight={800}>Bot-Powered Sale Round</Typography>
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                    Exclusive round with {saleConfig.bonusPercent}% Bonus Tokens
+                    Automated BTC & LINK trading with 35-50% expected returns
                 </Typography>
             </Box>
             <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
-                <Typography variant="caption" sx={{ opacity: 0.8 }}>Current Price</Typography>
-                <Typography variant="h5" fontWeight={700}>${saleConfig.price}</Typography>
+                <Typography variant="caption" sx={{ opacity: 0.8 }}>Base Price</Typography>
+                <Typography variant="h5" fontWeight={700}>${saleConfig.basePrice}</Typography>
+                <Typography variant="caption" sx={{ opacity: 0.8 }}>Buyback Target</Typography>
+                <Typography variant="h6" fontWeight={700} color="success.light">${saleConfig.buybackTarget}</Typography>
             </Box>
         </Stack>
       </Box>
@@ -80,13 +109,20 @@ const PresaleCard = () => {
             />
         </Box>
 
+        {/* Bot Strategy Alert */}
+        <Alert severity="info" icon={<SmartToyIcon />} sx={{ mb: 3 }}>
+          <Typography variant="body2" fontWeight={600}>
+            40% BTC Bot (24% APY) + 60% LINK Bot (60% APY) = 35-50% Combined Returns
+          </Typography>
+        </Alert>
+
         <GridContainer>
              {/* Left: Purchase Input */}
              <Box sx={{ flex: 1 }}>
                 <Typography variant="subtitle2" fontWeight={700} mb={1}>Enter Contribution (USDT)</Typography>
                 <TextField 
                     fullWidth
-                    placeholder="1000"
+                    placeholder="10000"
                     type="number"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
@@ -97,31 +133,67 @@ const PresaleCard = () => {
                     }}
                 />
                 <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                    Min Allocation: ${saleConfig.minBuy}
+                    Min Allocation: ${saleConfig.minBuy.toLocaleString()} • Tiered bonuses up to 45.7%
                 </Typography>
              </Box>
 
              {/* Right: Simulation */}
-             <Box sx={{ flex: 1, bgcolor: 'background.default', p: 2, borderRadius: 3 }}>
+             <Box sx={{ flex: 1, bgcolor: 'background.default', p: 3, borderRadius: 3, border: '2px solid', borderColor: 'divider' }}>
                 <Stack spacing={2}>
-                    <Row label="Base Tokens" value={tokenAmount.toLocaleString()} />
+                    <Row label="Base Tokens" value={baseTokens.toLocaleString(undefined, {maximumFractionDigits: 0})} />
                     <Row 
-                        label={`Bonus (${saleConfig.bonusPercent}%)`} 
-                        value={`+ ${bonusAmount.toLocaleString()}`} 
+                        label={`Tier Bonus (${bonusPercent.toFixed(1)}%)`} 
+                        value={`+ ${bonusTokens.toLocaleString(undefined, {maximumFractionDigits: 0})}`} 
                         highlight 
                         icon={<LocalOfferIcon sx={{ fontSize: 14 }} />} 
                     />
                     <Divider />
-                    <Row label="Total You Receive" value={totalTokens.toLocaleString()} isTotal />
-                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 1 }}>
-                        <TimerIcon color="action" fontSize="small" />
-                        <Typography variant="caption" color="text.secondary">
-                            Vesting: Linear release over {saleConfig.vestingMonths} months
-                        </Typography>
-                    </Box>
+                    <Row 
+                      label="Total EBONDS" 
+                      value={totalTokens.toLocaleString(undefined, {maximumFractionDigits: 0})} 
+                      isTotal 
+                    />
+                    
+                    {investAmount >= saleConfig.minBuy && (
+                      <>
+                        <Divider />
+                        <Box sx={{ bgcolor: 'success.light', p: 2, borderRadius: 2, border: '1px solid', borderColor: 'success.main' }}>
+                          <Typography variant="caption" color="success.dark" fontWeight={600} display="block">
+                            Profit at $0.90 Buyback
+                          </Typography>
+                          <Typography variant="h6" fontWeight={800} color="success.dark">
+                            ${profitAtBuyback.toLocaleString(undefined, {maximumFractionDigits: 0})}
+                          </Typography>
+                          <Chip 
+                            label={`${roiPercent.toFixed(1)}% ROI`} 
+                            size="small" 
+                            color="success" 
+                            sx={{ mt: 1, fontWeight: 700 }} 
+                          />
+                        </Box>
+                      </>
+                    )}
                 </Stack>
              </Box>
         </GridContainer>
+
+        {/* Bot Strategy Info */}
+        <Box sx={{ mt: 3, p: 3, bgcolor: 'info.light', borderRadius: 3, border: '1px solid', borderColor: 'info.main' }}>
+          <Stack spacing={1}>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <SmartToyIcon color="info" fontSize="small" />
+              <Typography variant="body2" color="info.dark" fontWeight={600}>
+                Revenue allocation: 40% Bitcoin Bot + 60% LINK Bot
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <TimerIcon color="info" fontSize="small" />
+              <Typography variant="body2" color="info.dark">
+                Bot profits directed to EBONDS liquidity buildup & buybacks at $0.90 target
+              </Typography>
+            </Box>
+          </Stack>
+        </Box>
 
         <Button 
             fullWidth 
@@ -129,9 +201,14 @@ const PresaleCard = () => {
             size="large" 
             sx={{ mt: 4, borderRadius: 3, py: 2, fontSize: '1.1rem', fontWeight: 800 }}
             onClick={handleBuy}
+            disabled={!amount || parseFloat(amount) < saleConfig.minBuy}
         >
-            Buy EBONDS with {saleConfig.bonusPercent}% Bonus
+            Participate with {bonusPercent.toFixed(1)}% Bonus
         </Button>
+
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block', textAlign: 'center' }}>
+          🎯 Goal: Double buyback capacity through automated volatility harnessing
+        </Typography>
 
       </CardContent>
     </Card>

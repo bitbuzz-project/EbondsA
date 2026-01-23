@@ -107,8 +107,8 @@ const AllocationStaking = () => {
                     Earn ESIR
                 </Typography>
                 <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 700, mb: 4 }}>
-                    Stake your EBONDS to earn 20% guaranteed APY plus ESIR rewards. 
-                    Unlock higher allocations for upcoming IDOs.
+                    Stake your EBONDS to earn ESIR rewards. 
+                  
                 </Typography>
 
                 {/* Stats Row */}
@@ -118,21 +118,21 @@ const AllocationStaking = () => {
                             <HeaderStat 
                                 label="Annual Yield (APY)" 
                                 value={loading ? <Skeleton width={100} /> : `${stats.apy.toFixed(2)}%`} 
-                                subtext="Fixed Rate"
+                               
                             />
                         </Grid>
                         <Grid item xs={12} md={3}>
                             <HeaderStat 
-                                label="Total Value Locked" 
-                                value={loading ? <Skeleton width={100} /> : `${stats.tvl.toLocaleString()} EBONDS`} 
-                                subtext={`$${(stats.tvl * stats.ebondPrice).toLocaleString()} USD`}
+                                label="Total EBONDS staked" 
+                                value={loading ? <Skeleton width={100} /> : `${stats.tvl.toLocaleString()}`} 
+                               
                             />
                         </Grid>
                          <Grid item xs={12} md={3}>
                             <HeaderStat 
                                 label="Rewards Distributed" 
                                 value={loading ? <Skeleton width={100} /> : `${stats.totalDistributed.toLocaleString()}`} 
-                                subtext="Total ESIR Paid"
+                                subtext="Total ESIR distributed"
                             />
                         </Grid>
                          <Grid item xs={12} md={3}>

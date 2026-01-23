@@ -121,7 +121,7 @@ const StakeCard = ({ update }) => {
                     Stake EBONDS
                 </Typography>
                 <Typography variant="body2" color="text.secondary" mb={3}>
-                    Stake your tokens to earn high APY rewards.
+                    Stake your tokens to earn ESIR rewards.
                 </Typography>
 
                 <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: 2, mb: 3 }}>

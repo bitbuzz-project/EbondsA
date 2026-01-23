@@ -257,7 +257,6 @@ const MainScreen = () => {
                 <StatCard 
                   title="Total EBONDS Staked" 
                   value={stakingData.tvl.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-                  subtext={`$${(stakingData.tvl * prices.ebond).toLocaleString('en-US', { maximumFractionDigits: 0 })} Value`}
                   highlight
                 />
               </Grid>

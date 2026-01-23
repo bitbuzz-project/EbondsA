@@ -33,9 +33,9 @@ import AccountDialog from "./components/accountDialog/AccountDialog";
 // import ErrorDialog from "../ErrorDialog/ErrorDialog"; <--- REMOVED
 
 const pages = [
-  { name: 'Home', link: 'https://ebonds.finance/', external: true },
-  { name: 'Dashboard', link: '/', external: false },
-  { name: 'Presale', link: '/sales', external: false }, 
+  { name: 'Home', link: '/', external: true },
+  { name: 'Dashboard', link: '/dashboard', external: false },
+  { name: 'Sale', link: '/sales', external: false }, 
   { name: 'Earn', link: '/allocation-staking', external: false },
   { name: 'Swap', link: '/swap', external: false },
   { name: 'Docs', link: 'https://medium.com/@EBONDS.Finance/ebonds-finance-whitepaper-69d5164235ea', external: true },
