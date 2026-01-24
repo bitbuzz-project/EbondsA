@@ -2,12 +2,12 @@ import { createTheme } from '@mui/material/styles';
 
 // Brand Colors (Preserved)
 const PRIMARY_GOLD = '#d29d5c';
-const DARK_BG = '#0a1019'; // Deep luxury black/blue
-const PAPER_BG = '#131a25'; // Slightly lighter for cards
+const DARK_BG = '#0a1019'; 
+const PAPER_BG = '#131a25'; 
 
 const theme = createTheme({
   palette: {
-    mode: 'dark', // Web3 apps usually default to dark mode for "pro" feel
+    mode: 'dark',
     primary: {
       main: PRIMARY_GOLD,
       contrastText: '#000000',
@@ -18,7 +18,7 @@ const theme = createTheme({
     },
     text: {
       primary: '#FFFFFF',
-      secondary: '#94a3b8', // Cool slate grey, better than standard grey
+      secondary: '#94a3b8', 
     },
     action: {
       hover: 'rgba(210, 157, 92, 0.08)',
@@ -30,13 +30,21 @@ const theme = createTheme({
       fontFamily: '"Space Grotesk", sans-serif',
       fontWeight: 700,
       fontSize: '3.5rem',
-      letterSpacing: '-0.02em', // Tight spacing looks more premium
+      letterSpacing: '-0.02em',
       lineHeight: 1.1,
+      // FIX: Responsive font size
+      '@media (max-width:600px)': {
+        fontSize: '2.5rem', 
+      },
     },
     h2: {
       fontFamily: '"Space Grotesk", sans-serif',
       fontWeight: 600,
       letterSpacing: '-0.01em',
+      // FIX: Responsive font size
+      '@media (max-width:600px)': {
+        fontSize: '2rem', 
+      },
     },
     h3: { fontFamily: '"Space Grotesk", sans-serif' },
     h4: { fontFamily: '"Space Grotesk", sans-serif' },
@@ -47,23 +55,23 @@ const theme = createTheme({
     },
     button: {
       fontFamily: '"Space Grotesk", sans-serif',
-      textTransform: 'none', // NEVER use uppercase for buttons in modern UI
+      textTransform: 'none', 
       fontWeight: 700,
       letterSpacing: '0.02em',
     },
     body1: {
-      lineHeight: 1.7, // Increases readability
+      lineHeight: 1.7, 
     },
   },
   shape: {
-    borderRadius: 0, // Sharp corners = Trust/Finance. Round corners = Playful. Let's go semi-sharp.
+    borderRadius: 4, // Slightly rounded for modern feel
   },
   components: {
     MuiCssBaseline: {
       styleOverrides: {
         body: {
           backgroundColor: DARK_BG,
-          backgroundImage: 'radial-gradient(circle at 50% -20%, rgba(210, 157, 92, 0.15), rgba(10, 16, 25, 0))', // Subtle gold glow at top
+          backgroundImage: 'radial-gradient(circle at 50% -20%, rgba(210, 157, 92, 0.15), rgba(10, 16, 25, 0))',
           backgroundRepeat: 'no-repeat',
           minHeight: '100vh',
         },
@@ -72,13 +80,15 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 4, // Minimal radius
-          padding: '12px 24px',
+          borderRadius: 8, // Standardize button radius
+          padding: '10px 20px',
           boxShadow: 'none',
           border: '1px solid transparent',
+          transition: 'all 0.2s ease-in-out', // Smooth hover
           '&:hover': {
-            boxShadow: 'none',
+            boxShadow: '0 4px 12px rgba(210, 157, 92, 0.15)', // Glow effect
             borderColor: PRIMARY_GOLD,
+            transform: 'translateY(-1px)', // Subtle lift
           },
         },
         contained: {
@@ -102,23 +112,28 @@ const theme = createTheme({
         root: {
           backgroundImage: 'none',
           backgroundColor: PAPER_BG,
-          border: '1px solid rgba(255,255,255,0.05)', // High-end border look
-          borderRadius: 8,
-        },
-        elevation1: {
-          boxShadow: '0px 4px 20px rgba(0,0,0,0.2)',
+          border: '1px solid rgba(255,255,255,0.05)',
+          borderRadius: 12, // Softer cards
         },
       },
     },
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: 'rgba(10, 16, 25, 0.7)', // Glassmorphism
-          backdropFilter: 'blur(12px)',
+          backgroundColor: 'rgba(10, 16, 25, 0.8)', 
+          backdropFilter: 'blur(20px)', // Stronger blur
           borderBottom: '1px solid rgba(255,255,255,0.05)',
           boxShadow: 'none',
         },
       },
+    },
+    MuiDrawer: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: '#0a1019', // Match app background
+          borderLeft: '1px solid rgba(255,255,255,0.1)',
+        }
+      }
     },
     MuiChip: {
       styleOverrides: {

@@ -103,7 +103,7 @@ const PresaleCard = ({ selectedAmount }) => {
             {/* The "Terminal" Input */}
             <Box sx={{ mb: 4 }}>
                 <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: 'block', letterSpacing: '0.1em' }}>
-                    INVESTMENT AMOUNT (USDT)
+                   ALLOCATION (USDC)
                 </Typography>
                 <TextField
                     fullWidth
@@ -115,7 +115,7 @@ const PresaleCard = ({ selectedAmount }) => {
                     InputProps={{
                         endAdornment: (
                             <InputAdornment position="end">
-                                <Typography fontWeight={700} sx={{ color: 'white' }}>USDT</Typography>
+                                <Typography fontWeight={700} sx={{ color: 'white' }}>USDC</Typography>
                             </InputAdornment>
                         ),
                         sx: { 

@@ -153,9 +153,7 @@ const AboutPage = () => {
                                 />
                             </div>
                         </Box>
-                        <Typography variant="caption" align="center" display="block" color="text.secondary" sx={{ mt: 2 }}>
-                            Powered by Uniswap Protocol
-                        </Typography>
+                        
                     </Grid>
 
                 </Grid>

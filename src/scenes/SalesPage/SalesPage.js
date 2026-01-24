@@ -39,7 +39,7 @@ const SalesPage = () => {
                                 <span style={{ color: '#d29d5c' }}>Architecture</span>
                             </Typography>
                             <Typography variant="h6" color="text.secondary" paragraph sx={{ maxWidth: 600, lineHeight: 1.8 }}>
-                                We are phasing out inflationary rewards. By deploying <strong>AI-driven arbitrage bots</strong> on Bitcoin and Chainlink, we generate external revenue to support the $0.90 buyback target.
+                                We are phasing out inflationary rewards. By deploying <strong>on-chain bots</strong> on Bitcoin and Chainlink, we generate external revenue to support the $0.90 buyback target and ecosystem flywheel.
                             </Typography>
                         </Box>
 
@@ -50,7 +50,7 @@ const SalesPage = () => {
                                     <SmartToyIcon sx={{ fontSize: 40, color: '#d29d5c', mb: 2 }} />
                                     <Typography variant="h6" fontWeight={700} color="white" gutterBottom>Automated Trading</Typography>
                                     <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                                        Capital is deployed into high-frequency grid bots.
+                                        Capital is deployed into low and higher frequency grid and exposure bots.
                                         <br/><br/>
                                         • <strong>40% BTC Bots</strong> (Conservative)<br/>
                                         • <strong>60% LINK Bots</strong> (Growth)
@@ -62,7 +62,7 @@ const SalesPage = () => {
                                     <ShieldIcon sx={{ fontSize: 40, color: '#d29d5c', mb: 2 }} />
                                     <Typography variant="h6" fontWeight={700} color="white" gutterBottom>Volatility Harvesting</Typography>
                                     <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                                        We capture profit from market swings rather than relying on new users.
+                                        We capture volatility-driven gains without requiring market timing .
                                         <br/><br/>
                                         • Backtested APY: <strong>35-50%</strong><br/>
                                         • Revenue -{'>'} Buybacks

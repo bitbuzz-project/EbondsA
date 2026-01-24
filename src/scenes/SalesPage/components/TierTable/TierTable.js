@@ -31,7 +31,7 @@ const TierTable = ({ onSelect }) => {
             <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <AutoGraphIcon sx={{ color: '#d29d5c', fontSize: 20 }} />
                 <Typography variant="subtitle2" fontWeight={700} sx={{ color: '#d29d5c', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                    Yield Projections
+                    ROI PROJECTIONS AT TARGET BUYBACK
                 </Typography>
             </Box>
 

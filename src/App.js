@@ -5,7 +5,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline'; 
 import { Web3ReactProvider } from '@web3-react/core';
 import { ethers } from 'ethers';
-import { ToastContainer } from 'react-toastify'; // Import Container
+import { ToastContainer } from 'react-toastify';
 
 // Project imports
 import { routes } from './routes';
@@ -15,12 +15,12 @@ import store from './app/store';
 import theme from './theme'; 
 import PrivateRoute from './scenes/PrivateRoute/PrivateRoute';
 import ScrollToTop from './scenes/ScrollToTop/ScrollToTop';
+import { useEagerConnect } from './hooks/useEagerConnect'; // Import the new hook
 
 import './fonts.css';
 import 'react-toastify/dist/ReactToastify.css';
 import "animate.css/animate.min.css";
 
-// Increase polling to 15 seconds to prevent 429 Errors
 const POLLING_INTERVAL = 15000;
 
 const getLibrary = (provider) => {
@@ -31,6 +31,30 @@ const getLibrary = (provider) => {
 
 const reload = () => window.location.reload();
 
+// 1. Create a Child Component to handle Logic & Routing
+const AppContent = () => {
+  // Now we can use the hook because we are inside the Provider
+  useEagerConnect(); 
+
+  return (
+    <BaseLayout history={history}>
+      <Routes>
+        {routes.map((route) => {
+          if (route.isProtected)
+            return (
+              <Route key={route.path} path={route.path} element={<PrivateRoute />}>
+                <Route key={route.path} path={route.path} exact={route.exact} element={route.component} />
+              </Route>
+            )
+          return (<Route key={route.path} path={route.path} exact={route.exact} element={route.component} />)
+        })}
+        <Route path="/TermsAndConditions.html" onEnter={reload} />
+      </Routes>
+    </BaseLayout>
+  );
+};
+
+// 2. The Main Component only handles Providers
 const App = () => {
   return (
     <Web3ReactProvider getLibrary={getLibrary}>
@@ -39,7 +63,6 @@ const App = () => {
           <CssBaseline /> 
           <ScrollToTop />
           
-          {/* NOTIFICATION SYSTEM ACTIVATED */}
           <ToastContainer 
             position="bottom-right"
             autoClose={5000}
@@ -59,20 +82,9 @@ const App = () => {
             }}
           />
 
-          <BaseLayout history={history}>
-            <Routes>
-              {routes.map((route) => {
-                if (route.isProtected)
-                  return (
-                    <Route key={route.path} path={route.path} element={<PrivateRoute />}>
-                      <Route key={route.path} path={route.path} exact={route.exact} element={route.component} />
-                    </Route>
-                  )
-                return (<Route key={route.path} path={route.path} exact={route.exact} element={route.component} />)
-              })}
-              <Route path="/TermsAndConditions.html" onEnter={reload} />
-            </Routes>
-          </BaseLayout>
+          {/* Render the content inside the providers */}
+          <AppContent />
+
         </ThemeProvider>
       </Provider>
     </Web3ReactProvider>

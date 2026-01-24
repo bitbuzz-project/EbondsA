@@ -28,16 +28,19 @@ import { useWeb3React } from '@web3-react/core';
 import { injected, walletconnect } from '../../../../connector';
 import { toast } from 'react-toastify';
 
-// FIX: Destructure 'open' and 'setOpen' instead of 'show' and 'setShow'
 const AccountDialog = ({ open, setOpen }) => {
   const { active, account, activate, deactivate } = useWeb3React();
 
-  // --- CONNECT LOGIC WITH AUTO-SWITCH ---
-  const handleConnect = async (connector) => {
+  // --- UPDATED CONNECT LOGIC ---
+  const handleConnect = async (connector, type) => {
     try {
       // 1. Try connecting normally
       await activate(connector, undefined, true); 
-      setOpen(false); // FIX: Use setOpen
+      
+      // FIX: Save preference to LocalStorage
+      localStorage.setItem('connectedWallet', type);
+
+      setOpen(false);
       toast.success("Wallet Connected!");
     } catch (error) {
       console.error("Connection attempt failed:", error);
@@ -52,7 +55,8 @@ const AccountDialog = ({ open, setOpen }) => {
               
               // Retry connection after successful switch
               await activate(connector);
-              setOpen(false); // FIX: Use setOpen
+              localStorage.setItem('connectedWallet', type); // Save here too
+              setOpen(false); 
               toast.success("Connected to Arbitrum!");
           } catch (switchError) {
               
@@ -70,12 +74,12 @@ const AccountDialog = ({ open, setOpen }) => {
                           }],
                       });
                       await activate(connector);
-                      setOpen(false); // FIX: Use setOpen
+                      localStorage.setItem('connectedWallet', type); // Save here too
+                      setOpen(false); 
                   } catch (addError) {
                       toast.error("Could not add Arbitrum network.");
                   }
               } else {
-                  // Generic error (User rejected request, etc)
                   toast.warning("Please switch your wallet to Arbitrum One.");
               }
           }
@@ -87,7 +91,8 @@ const AccountDialog = ({ open, setOpen }) => {
 
   const handleDisconnect = () => {
     deactivate();
-    setOpen(false); // FIX: Use setOpen
+    localStorage.removeItem('connectedWallet'); // FIX: Clear storage
+    setOpen(false); 
     toast.info("Wallet Disconnected");
   };
 
@@ -98,8 +103,8 @@ const AccountDialog = ({ open, setOpen }) => {
 
   return (
     <Dialog 
-      open={open} // FIX: Use open prop
-      onClose={() => setOpen(false)} // FIX: Use setOpen
+      open={open} 
+      onClose={() => setOpen(false)} 
       maxWidth="xs" 
       fullWidth
       PaperProps={{
@@ -108,7 +113,7 @@ const AccountDialog = ({ open, setOpen }) => {
             p: 1, 
             boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
             bgcolor: 'background.paper',
-            backgroundImage: 'linear-gradient(rgba(255,255,255,0.05), rgba(255,255,255,0))' // Subtle gradient
+            backgroundImage: 'linear-gradient(rgba(255,255,255,0.05), rgba(255,255,255,0))'
         }
       }}
     >
@@ -124,19 +129,18 @@ const AccountDialog = ({ open, setOpen }) => {
       <DialogContent sx={{ p: 3 }}>
         {!active ? (
           <Stack spacing={2}>
-            {/* MetaMask Button */}
+            {/* MetaMask Button - PASS 'METAMASK' */}
             <ConnectorButton 
               name="MetaMask" 
               icon={MetamaskLogo} 
-              onClick={() => handleConnect(injected)} 
+              onClick={() => handleConnect(injected, 'METAMASK')} 
             />
             
-            {/* WalletConnect V2 Button */}
+            {/* WalletConnect Button - PASS 'WALLETCONNECT' */}
             <ConnectorButton 
               name="WalletConnect" 
-              // icon={WalletConnectLogo}
               fallbackIcon={<QrCodeIcon color="action" />}
-              onClick={() => handleConnect(walletconnect)} 
+              onClick={() => handleConnect(walletconnect, 'WALLETCONNECT')} 
             />
           </Stack>
         ) : (
