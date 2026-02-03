@@ -25,10 +25,12 @@ import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import PublishIcon from '@mui/icons-material/Publish'; 
 import GetAppIcon from '@mui/icons-material/GetApp'; 
 
+// Import dynamic price fetchers from services
+import { fetchEbPrice, fetchUSDTPrice } from '../../services/prices';
+
 // Import ONLY what exists
 import { 
     stakingContractAddress, 
-    abi as stakingAbi,
 } from '../AllocationStaking/services/consts';
 
 // --- FIXED ADDRESSES ---
@@ -37,11 +39,6 @@ const ESIR_ADDRESS = '0x8C75a1C86C21b74754FC8e3Bc4e7f79B4fCC5a28';
 
 // --- CONFIG ---
 const FIXED_DECIMALS = 18;
-const PRICES = {
-    EBONDS: 0.865,
-    ESIR: 1.20,
-    USDT: 1.00
-};
 const COLORS = ['#d29d5c', '#64748b', '#ffffff'];
 
 // Minimal ERC20 ABI
@@ -71,6 +68,7 @@ const MainScreen = () => {
     
     // --- STATE ---
     const [balances, setBalances] = useState({ ebonds: 0, esir: 0 });
+    const [prices, setPrices] = useState({ EBONDS: 0, ESIR: 0 });
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -91,65 +89,74 @@ const MainScreen = () => {
 
     // --- FETCH DATA ---
     useEffect(() => {
-        if (!account || !library) return;
-
         const fetchData = async () => {
             setLoading(true);
             try {
-                const ebondsContract = new ethers.Contract(EBONDS_ADDRESS, TOKEN_ABI, library);
-                const esirContract = new ethers.Contract(ESIR_ADDRESS, TOKEN_ABI, library);
-                
-                // 1. FETCH BALANCES
-                const [ebBalanceRaw, esBalanceRaw] = await Promise.all([
-                    ebondsContract.balanceOf(account),
-                    esirContract.balanceOf(account)
+                // 1. FETCH DYNAMIC PRICES
+                const [ebPrice, esirPrice] = await Promise.all([
+                    fetchEbPrice(),
+                    fetchUSDTPrice() 
                 ]);
-
-                setBalances({ 
-                    ebonds: parseFloat(ethers.utils.formatUnits(ebBalanceRaw, FIXED_DECIMALS)), 
-                    esir: parseFloat(ethers.utils.formatUnits(esBalanceRaw, FIXED_DECIMALS)) 
+                setPrices({ 
+                    EBONDS: parseFloat(ebPrice) || 0, 
+                    ESIR: parseFloat(esirPrice) || 0 
                 });
 
-                // 2. FETCH TOKEN HISTORY 
-                const currentBlock = await library.getBlockNumber();
-                const fromBlock = Math.max(0, currentBlock - 500000); // Look back ~500k blocks
-
-                // Filters
-                const filterEbondsIn = ebondsContract.filters.Transfer(null, account);
-                const filterEbondsOut = ebondsContract.filters.Transfer(account, null);
-                const filterEsirIn = esirContract.filters.Transfer(null, account);
-                const filterEsirOut = esirContract.filters.Transfer(account, null);
-
-                const [ebIn, ebOut, esIn, esOut] = await Promise.all([
-                    ebondsContract.queryFilter(filterEbondsIn, fromBlock),
-                    ebondsContract.queryFilter(filterEbondsOut, fromBlock),
-                    esirContract.queryFilter(filterEsirIn, fromBlock),
-                    esirContract.queryFilter(filterEsirOut, fromBlock)
-                ]);
-
-                const formatLog = (log, tokenName) => {
-                    const amount = parseFloat(ethers.utils.formatUnits(log.args.value, FIXED_DECIMALS));
-                    const type = getTxType(log.args.from, log.args.to);
+                if (account && library) {
+                    const ebondsContract = new ethers.Contract(EBONDS_ADDRESS, TOKEN_ABI, library);
+                    const esirContract = new ethers.Contract(ESIR_ADDRESS, TOKEN_ABI, library);
                     
-                    return {
-                        action: `${type.label} ${tokenName}`,
-                        amount: `${type.label === 'Sent' || type.label === 'Staked' ? '-' : '+'}${amount.toFixed(2)}`,
-                        rawAmount: amount,
-                        hash: log.transactionHash,
-                        blockNumber: log.blockNumber,
-                        icon: type.icon,
-                        color: (type.label === 'Received' || type.label.includes('Unstaked')) ? 'success.main' : 'error.main'
+                    // 2. FETCH BALANCES
+                    const [ebBalanceRaw, esBalanceRaw] = await Promise.all([
+                        ebondsContract.balanceOf(account),
+                        esirContract.balanceOf(account)
+                    ]);
+
+                    setBalances({ 
+                        ebonds: parseFloat(ethers.utils.formatUnits(ebBalanceRaw, FIXED_DECIMALS)), 
+                        esir: parseFloat(ethers.utils.formatUnits(esBalanceRaw, FIXED_DECIMALS)) 
+                    });
+
+                    // 3. FETCH TOKEN HISTORY 
+                    const currentBlock = await library.getBlockNumber();
+                    const fromBlock = Math.max(0, currentBlock - 500000);
+
+                    const filterEbondsIn = ebondsContract.filters.Transfer(null, account);
+                    const filterEbondsOut = ebondsContract.filters.Transfer(account, null);
+                    const filterEsirIn = esirContract.filters.Transfer(null, account);
+                    const filterEsirOut = esirContract.filters.Transfer(account, null);
+
+                    const [ebIn, ebOut, esIn, esOut] = await Promise.all([
+                        ebondsContract.queryFilter(filterEbondsIn, fromBlock),
+                        ebondsContract.queryFilter(filterEbondsOut, fromBlock),
+                        esirContract.queryFilter(filterEsirIn, fromBlock),
+                        esirContract.queryFilter(filterEsirOut, fromBlock)
+                    ]);
+
+                    const formatLog = (log, tokenName) => {
+                        const amount = parseFloat(ethers.utils.formatUnits(log.args.value, FIXED_DECIMALS));
+                        const type = getTxType(log.args.from, log.args.to);
+                        
+                        return {
+                            action: `${type.label} ${tokenName}`,
+                            amount: `${type.label === 'Sent' || type.label === 'Staked' ? '-' : '+'}${amount.toFixed(2)}`,
+                            rawAmount: amount,
+                            hash: log.transactionHash,
+                            blockNumber: log.blockNumber,
+                            icon: type.icon,
+                            color: (type.label === 'Received' || type.label.includes('Unstaked')) ? 'success.main' : 'error.main'
+                        };
                     };
-                };
 
-                const allTx = [
-                    ...ebIn.map(l => formatLog(l, 'EBONDS')),
-                    ...ebOut.map(l => formatLog(l, 'EBONDS')),
-                    ...esIn.map(l => formatLog(l, 'ESIR')),
-                    ...esOut.map(l => formatLog(l, 'ESIR'))
-                ].sort((a, b) => b.blockNumber - a.blockNumber);
+                    const allTx = [
+                        ...ebIn.map(l => formatLog(l, 'EBONDS')),
+                        ...ebOut.map(l => formatLog(l, 'EBONDS')),
+                        ...esIn.map(l => formatLog(l, 'ESIR')),
+                        ...esOut.map(l => formatLog(l, 'ESIR'))
+                    ].sort((a, b) => b.blockNumber - a.blockNumber);
 
-                setHistory(allTx.slice(0, 7));
+                    setHistory(allTx.slice(0, 7));
+                }
 
             } catch (error) {
                 console.error("Dashboard Fetch Error:", error);
@@ -161,8 +168,8 @@ const MainScreen = () => {
     }, [account, library]);
 
     // Derived Values
-    const ebondsValue = balances.ebonds * PRICES.EBONDS;
-    const esirValue = balances.esir * PRICES.ESIR;
+    const ebondsValue = balances.ebonds * prices.EBONDS;
+    const esirValue = balances.esir * prices.ESIR;
     const totalValue = ebondsValue + esirValue;
 
     const data = [
@@ -172,10 +179,13 @@ const MainScreen = () => {
     const chartData = data.filter(d => d.value > 0);
     if (chartData.length === 0) chartData.push({ name: 'Empty', value: 1 });
 
-    const formatPrecise = (num) => {
-        if (num === 0) return "0.00";
-        if (num < 0.01) return num.toFixed(6); 
-        return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    // Format as whole numbers without decimals
+    const formatWhole = (num) => {
+        if (!num || num === 0) return "0";
+        return Math.floor(num).toLocaleString(undefined, { 
+            minimumFractionDigits: 0, 
+            maximumFractionDigits: 0 
+        });
     };
 
     return (
@@ -224,7 +234,6 @@ const MainScreen = () => {
                                             ESTIMATED NET WORTH
                                         </Typography>
                                         <Typography variant="h2" fontWeight={700} color="white" sx={{ fontFamily: 'monospace' }}>
-                                            {/* FIX: Forced to exactly 3 decimals */}
                                             ${totalValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                                         </Typography>
                                     </Box>
@@ -237,19 +246,19 @@ const MainScreen = () => {
                             <Grid item xs={12} md={6}>
                                 <StatBox 
                                     label="EBONDS HOLDINGS" 
-                                    value={formatPrecise(balances.ebonds)} 
-                                    subValue={`≈ $${formatPrecise(ebondsValue)}`}
+                                    value={formatWhole(balances.ebonds)} 
+                                    subValue={`≈ $${ebondsValue.toFixed(2)}`}
                                 />
                             </Grid>
                             <Grid item xs={12} md={6}>
                                 <StatBox 
                                     label="ESIR HOLDINGS" 
-                                    value={formatPrecise(balances.esir)} 
-                                    subValue={`≈ $${formatPrecise(esirValue)}`}
+                                    value={formatWhole(balances.esir)} 
+                                    subValue={`≈ $${esirValue.toFixed(2)}`}
                                 />
                             </Grid>
 
-                            {/* PRO Transaction History */}
+                            {/* Token Activity Section */}
                             <Grid item xs={12}>
                                 <Box sx={{ mt: 2 }}>
                                     <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 3 }}>
@@ -272,7 +281,6 @@ const MainScreen = () => {
                                                     display: 'flex',
                                                     justifyContent: 'space-between',
                                                     alignItems: 'center',
-                                                    transition: 'bgcolor 0.2s',
                                                     '&:hover': { bgcolor: 'rgba(255,255,255,0.02)' }
                                                 }}>
                                                     <Stack direction="row" spacing={2} alignItems="center">
@@ -298,7 +306,6 @@ const MainScreen = () => {
                                                             </Stack>
                                                         </Box>
                                                     </Stack>
-                                                    
                                                     <Box textAlign="right">
                                                         <Typography variant="body1" fontWeight={600} color={row.color} fontFamily="monospace">
                                                             {row.amount}
@@ -314,7 +321,7 @@ const MainScreen = () => {
                         </Grid>
                     </Grid>
 
-                    {/* COL 2: Chart & Allocation */}
+                    {/* COL 2: Allocation Chart */}
                     <Grid item xs={12} md={4}>
                         <Paper sx={{ p: 4, height: '100%', bgcolor: '#0a1019', border: '1px solid rgba(255,255,255,0.1)' }}>
                             <Typography variant="h6" fontWeight={700} gutterBottom>Asset Allocation</Typography>
@@ -359,7 +366,6 @@ const MainScreen = () => {
                             </Stack>
                         </Paper>
                     </Grid>
-
                 </Grid>
             </Container>
         </Box>
