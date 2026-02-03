@@ -225,7 +225,7 @@ const MainScreen = () => {
                                         </Typography>
                                         <Typography variant="h2" fontWeight={700} color="white" sx={{ fontFamily: 'monospace' }}>
                                             {/* FIX: Forced to exactly 3 decimals */}
-                                            ${totalValue.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}
+                                            ${totalValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                                         </Typography>
                                     </Box>
                                     <Button variant="outlined" endIcon={<ArrowOutwardIcon />}>

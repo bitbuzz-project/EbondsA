@@ -34,7 +34,7 @@ const Footer = () => {
         },
         { 
             icon: ArticleIcon, 
-            href: "https://medium.com/@EBONDS.Finance/ebonds-finance-whitepaper-69d5164235ea",
+            href: "https://medium.com/@EBONDS.Finance",
             label: "Medium Whitepaper"
         }
     ];
