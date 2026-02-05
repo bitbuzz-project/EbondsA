@@ -52,19 +52,30 @@ const Footer = () => {
                     {/* 1. Logo */}
                     <Box component="img" src={Logo} sx={{ height: 36, opacity: 1 }} />
                     
-                    {/* 2. Tagline */}
-                    <Typography 
-                        variant="body1" 
-                        color="text.secondary" 
-                        align="center" 
-                        sx={{ 
-                            maxWidth: 500, 
-                            lineHeight: 1.6,
-                            fontSize: '1rem' 
-                        }}
-                    >
-                       On-chain Systematic Bots. Harvesting Volatility. Accelerating Flywheel.
-                    </Typography>
+                    {/* 2. Tagline - Displayed in 3 lines */}
+                    <Box sx={{ textAlign: 'center' }}>
+                        <Typography 
+                            variant="body1" 
+                            color="text.secondary" 
+                            sx={{ lineHeight: 1.4, fontSize: '1rem', fontWeight: 500 }}
+                        >
+                            On-chain Systematic Bots.
+                        </Typography>
+                        <Typography 
+                            variant="body1" 
+                            color="text.secondary" 
+                            sx={{ lineHeight: 1.4, fontSize: '1rem', fontWeight: 500 }}
+                        >
+                            Harvesting Volatility.
+                        </Typography>
+                        <Typography 
+                            variant="body1" 
+                            color="text.secondary" 
+                            sx={{ lineHeight: 1.4, fontSize: '1rem', fontWeight: 500 }}
+                        >
+                            Accelerating Flywheel.
+                        </Typography>
+                    </Box>
 
                     {/* 3. Icon Links (Mapped with Hrefs) */}
                     <Stack direction="row" spacing={2}>
@@ -106,8 +117,8 @@ const Footer = () => {
                     </Typography>
                     
                     <Typography variant="caption" color="text.secondary" sx={{ maxWidth: 800, mx: 'auto', display: 'block', fontSize: '0.7rem', lineHeight: 1.6 }}>
-                        Disclaimer: EBONDS is a decentralized protocol. Nothing on this website constitutes financial advice or a recommendation to buy or sell any asset. 
-                        Cryptocurrency trading involves a high level of risk and may not be suitable for all investors. 
+                        Disclaimer: EBONDS is a decentralized protocol. Nothing on this website constitutes financial advice or a recommendation to buy or sell any asset.
+                        Cryptocurrency trading involves a high level of risk and may not be suitable for all investors.
                         The volatility harnessing strategies mentioned are algorithmic projections based on backtested data and do not guarantee future performance.
                         Users are responsible for their own due diligence and compliance with local regulations.
                     </Typography>

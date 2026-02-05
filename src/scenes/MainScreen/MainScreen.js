@@ -237,9 +237,7 @@ const MainScreen = () => {
                                             ${totalValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                                         </Typography>
                                     </Box>
-                                    <Button variant="outlined" endIcon={<ArrowOutwardIcon />}>
-                                        View Analytics
-                                    </Button>
+                                  
                                 </Paper>
                             </Grid>
 

@@ -131,22 +131,25 @@ const LandingPage = () => {
               <Typography variant="h4" sx={{ mb: 4, fontSize: { xs: '1.1rem', md: '1.6rem' }, color: 'text.secondary', fontWeight: 400, maxWidth: '90%' }}>
                 Automated on-chain strategies built to harvest volatility across market conditions.
               </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 650, mb: 6, fontSize: '1.1rem', lineHeight: 1.8 }}>
+              <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 650, mb: 2, fontSize: '1.1rem', lineHeight: 1.8 }}>
               The updated system is built to operate based on market movement, not constant trading activity. Instead of relying on high volume, it is designed to respond to price changes as they happen, across both smaller and larger market moves.
+              </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 650, mb: 1, fontSize: '1.1rem', lineHeight: 1.8 }}>
+                  Ready to deploy and scale.
               </Typography>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                 <Button 
                   variant="contained" 
                   size="large" 
                   endIcon={<ArrowForwardIcon />}
-                  onClick={() => navigate('/allocation-staking')}
+                  onClick={() => navigate('/sales')}
                   sx={{ 
                       px: 5, py: 1.8, fontSize: '1rem', fontWeight: 700,
                       background: 'linear-gradient(45deg, #d29d5c 30%, #e3b578 90%)',
                       boxShadow: '0 4px 20px rgba(210, 157, 92, 0.4)'
                   }}
                 >
-                  SCALE ALLOCATION BUY EBONDS + EBONDS
+                  SCALE ALLOCATION BUY EBONDS + BONUS
                 </Button>
                 {/* <Button 
                   variant="outlined" 
