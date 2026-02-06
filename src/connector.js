@@ -12,7 +12,7 @@ export const walletconnect = new WalletConnectV2Connector({
   mainChainId: 42161,
   rpcMap: { 42161: RpcProvider },
   // -----------------------------------------------------------
-  // TODO: Replace with your actual Project ID from cloud.reown.com
+ 
   projectId: "c07ae9abdbc5b70e77f69348a09bb9c1", 
   // -----------------------------------------------------------
 });
