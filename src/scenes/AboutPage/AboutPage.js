@@ -16,9 +16,16 @@ const USDC_NATIVE_ADDRESS = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'; // Arb
 
 const JSON_RPC_URL = 'https://arb1.arbitrum.io/rpc'; 
 
-// --- 2. TOKEN LISTS ---
-// Visible tokens (shown in dropdown)
-const VISIBLE_TOKENS = [
+// --- 2. TOKEN LIST ---
+const MY_TOKEN_LIST = [
+  {
+    name: 'Wrapped Ether',
+    address: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
+    symbol: 'WETH',
+    decimals: 18,
+    chainId: 42161,
+    logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png'
+  },
   {
     name: 'USD Coin (Bridged)',
     address: USDC_E_ADDRESS,
@@ -34,6 +41,30 @@ const VISIBLE_TOKENS = [
     decimals: 6,
     chainId: 42161,
     logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png'
+  },
+  {
+    name: 'Tether USD',
+    address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+    symbol: 'USDT',
+    decimals: 6,
+    chainId: 42161,
+    logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png'
+  },
+  {
+    name: 'Dai Stablecoin',
+    address: '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
+    symbol: 'DAI',
+    decimals: 18,
+    chainId: 42161,
+    logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x6B175474E89094C44Da98b954EedeAC495271d0F/logo.png'
+  },
+  {
+    name: 'Arbitrum',
+    address: '0x912CE59144191C1204E64559FE8253a0e49E6548',
+    symbol: 'ARB',
+    decimals: 18,
+    chainId: 42161,
+    logoURI: 'https://assets.coingecko.com/coins/images/16547/small/photo_2023-03-29_21.47.00.jpeg'
   },
   {
     name: 'Ebonds',
@@ -52,45 +83,6 @@ const VISIBLE_TOKENS = [
     logoURI: 'https://raw.githubusercontent.com/uniswap/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png'
   }
 ];
-
-// Hidden routing tokens (for multi-hop but not in dropdown)
-const ROUTING_TOKENS = [
-  {
-    name: 'Wrapped Ether',
-    address: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
-    symbol: 'WETH',
-    decimals: 18,
-    chainId: 42161,
-    logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png'
-  },
-  {
-    name: 'Arbitrum',
-    address: '0x912CE59144191C1204E64559FE8253a0e49E6548',
-    symbol: 'ARB',
-    decimals: 18,
-    chainId: 42161,
-    logoURI: 'https://assets.coingecko.com/coins/images/16547/small/photo_2023-03-29_21.47.00.jpeg'
-  },
-  {
-    name: 'Dai Stablecoin',
-    address: '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
-    symbol: 'DAI',
-    decimals: 18,
-    chainId: 42161,
-    logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x6B175474E89094C44Da98b954EedeAC495271d0F/logo.png'
-  },
-  {
-    name: 'Tether USD',
-    address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
-    symbol: 'USDT',
-    decimals: 6,
-    chainId: 42161,
-    logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png'
-  }
-];
-
-// Combined list for widget (all tokens available for routing)
-const FULL_TOKEN_LIST = [...VISIBLE_TOKENS, ...ROUTING_TOKENS];
 
 const goldTheme = {
   primary: '#FFFFFF',
@@ -144,6 +136,30 @@ const AboutPage = () => {
             bgcolor: '#05090f',
             backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(210, 157, 92, 0.03), transparent 50%)'
         }}>
+            {/* Custom CSS to fix hover issues */}
+            <style>{`
+                /* Fix duplicate hover effect in token list */
+                .Uniswap [role="option"]:hover {
+                    background-color: rgba(255, 255, 255, 0.08) !important;
+                }
+                
+                /* Ensure proper z-index layering */
+                .Uniswap [role="listbox"] {
+                    z-index: 9999 !important;
+                }
+                
+                /* Fix token row spacing */
+                .Uniswap [role="option"] {
+                    position: relative !important;
+                    pointer-events: auto !important;
+                }
+                
+                /* Remove any duplicate hover effects from parent containers */
+                .Uniswap [role="option"] > * {
+                    pointer-events: none !important;
+                }
+            `}</style>
+
             <Container maxWidth="lg">
                 <Grid container spacing={8} justifyContent="center" alignItems="flex-start">
                     
@@ -163,13 +179,7 @@ const AboutPage = () => {
                             </Typography>
                         </Box>
 
-                        <Paper sx={{ p: 3, bgcolor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', mb: 3 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, p: 2, bgcolor: 'rgba(210, 157, 92, 0.1)', borderRadius: 1, border: '1px solid rgba(210, 157, 92, 0.3)' }}>
-                                <Typography variant="body2" color="#d29d5c">
-                                    ⚠️ <strong>Important:</strong> You need ETH in your wallet to pay for gas fees when swapping.
-                                </Typography>
-                            </Box>
-                        </Paper>
+                    
 
                         <Paper sx={{ p: 3, bgcolor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
                             <Typography variant="subtitle2" fontWeight={700} color="white" gutterBottom sx={{ mb: 3, letterSpacing: '0.1em' }}>
@@ -195,16 +205,16 @@ const AboutPage = () => {
                             overflow: 'hidden'
                         }}>
                             <div className="Uniswap">
-                                <SwapWidget
-                                    provider={library} 
-                                    jsonRpcUrlMap={{ 42161: JSON_RPC_URL }}
-                                    defaultChainId={42161} 
-                                    theme={goldTheme}
-                                    width="100%"
-                                    tokenList={FULL_TOKEN_LIST}
-                                    defaultInputTokenAddress={USDC_E_ADDRESS}
-                                    defaultOutputTokenAddress={EBONDS_ADDRESS}
-                                />
+                                         <SwapWidget
+                                            provider={library} 
+                                            jsonRpcEndpoint={JSON_RPC_URL} // Newer props often prefer this for initial pricing
+                                            defaultChainId={42161} 
+                                            theme={goldTheme}
+                                            width="100%"
+                                            tokenList={MY_TOKEN_LIST}
+                                            defaultInputTokenAddress={USDC_E_ADDRESS}
+                                            defaultOutputTokenAddress={EBONDS_ADDRESS}
+                                        />
                             </div>
                         </Box>
                     </Grid>
