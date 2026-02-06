@@ -1,0 +1,39 @@
+/* Override Uniswap Widget Token List Hover Styles */
+.Uniswap [class*="TokenButton"],
+.Uniswap [class*="TokenRow"] {
+  min-height: 56px !important;
+  padding: 12px 16px !important;
+}
+
+.Uniswap [class*="TokenButton"]:hover,
+.Uniswap [class*="TokenRow"]:hover {
+  background-color: rgba(210, 157, 92, 0.1) !important;
+}
+
+/* Ensure single-line layout for token info */
+.Uniswap [class*="TokenInfo"] {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  white-space: nowrap !important;
+}
+
+/* Fix token name/symbol layout */
+.Uniswap [class*="TokenName"],
+.Uniswap [class*="TokenSymbol"] {
+  display: inline !important;
+  line-height: 1.4 !important;
+}
+
+/* Adjust balance alignment */
+.Uniswap [class*="TokenBalance"] {
+  margin-left: auto !important;
+  white-space: nowrap !important;
+}
+
+/* Fix logo sizing */
+.Uniswap [class*="TokenLogo"] {
+  width: 32px !important;
+  height: 32px !important;
+  flex-shrink: 0 !important;
+}

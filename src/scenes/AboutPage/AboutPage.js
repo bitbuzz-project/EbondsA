@@ -4,6 +4,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { SwapWidget } from '@uniswap/widgets';
 import { useWeb3React } from '@web3-react/core';
+import './SwapWidget.css'; // Add this import at the top
 
 // Asset Imports
 import ArbitrumLogo from '../../resources/arbitrum.svg'; 

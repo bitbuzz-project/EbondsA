@@ -1,16 +1,17 @@
+import { Buffer } from 'buffer';
 import React from 'react';
 import ReactDOM from 'react-dom';
-
-
-
-
-
+import { BrowserRouter } from 'react-router-dom';
 import './index.css';
-
 import App from './App';
 import * as serviceWorker from './serviceWorker';
-import configureStore from './store/configureStore';
-import { BrowserRouter } from 'react-router-dom';
+
+// 2. Polyfills and global definitions come AFTER all imports
+window.Buffer = window.Buffer || Buffer;
+
+if (window.process === undefined) {
+  window.process = { env: {} };
+}
 
 if (window.process === undefined) {
   window.process = { env: {} };
