@@ -69,7 +69,7 @@ const PresaleCard = ({ selectedAmount }) => {
                 ]);
 
                 setUsdcBalance(parseFloat(ethers.utils.formatUnits(bal, 6)));
-                setIsApproved(parseFloat(ethers.utils.formatUnits(allow, 6)) >= 1000000);
+                setIsApproved(parseFloat(ethers.utils.formatUnits(allow, 6)) >= parseFloat(amount));
                 setVestingInfo({
                     purchased: parseFloat(ethers.utils.formatUnits(info.purchased, 18)),
                     claimable: parseFloat(ethers.utils.formatUnits(info.claimable, 18)),
@@ -87,18 +87,27 @@ const PresaleCard = ({ selectedAmount }) => {
         return () => clearInterval(interval);
     }, [fetchData]);
 
-    const handleApprove = async () => {
-        try {
-            setLoading(true);
-            const usdcContract = new ethers.Contract(USDC_ADDRESS, TOKEN_ABI, library.getSigner());
-            const tx = await usdcContract.approve(SALE_CONTRACT_ADDRESS, ethers.constants.MaxUint256);
-            await tx.wait();
-            setIsApproved(true);
-            toast.success("USDC Approved!");
-        } catch (err) {
-            toast.error("Approval Failed");
-        } finally { setLoading(false); }
-    };
+   const handleApprove = async () => {
+    if (!amount || parseFloat(amount) <= 0) return toast.error("Enter a valid amount first");
+    
+    try {
+        setLoading(true);
+        const usdcContract = new ethers.Contract(USDC_ADDRESS, TOKEN_ABI, library.getSigner());
+        
+        // Convert the input amount to the correct 6-decimal format for USDC
+        const amountToApprove = ethers.utils.parseUnits(amount, 6);
+        
+        const tx = await usdcContract.approve(SALE_CONTRACT_ADDRESS, amountToApprove);
+        await tx.wait();
+        
+        setIsApproved(true);
+        toast.success(`Approved ${amount} USDC!`);
+    } catch (err) {
+        toast.error("Approval Failed");
+    } finally { 
+        setLoading(false); 
+    }
+};
 
     const handleBuy = async () => {
         if (parseFloat(amount) < minPurchase) return toast.error(`Min $${minPurchase} USDC`);

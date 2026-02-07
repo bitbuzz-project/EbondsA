@@ -1,39 +1,130 @@
-/* Override Uniswap Widget Token List Hover Styles */
+/* 1. Kill the specific absolute-positioned grey background div */
+.Uniswap [class*="TokenOptions__OnHover"],
+.Uniswap div[hover],
+.fAuDQJ {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* 2. Fix Vertical Spacing & Compression */
+.Uniswap [class*="TokenRow"], 
 .Uniswap [class*="TokenButton"],
-.Uniswap [class*="TokenRow"] {
-  min-height: 56px !important;
-  padding: 12px 16px !important;
+.Uniswap [class*="MenuItem"],
+.ejrjYf {
+    position: relative !important;
+    z-index: 1 !important;
+    height: 56px !important;      /* Fixed height to prevent stretching */
+    min-height: 56px !important;
+    margin-bottom: 2px !important; /* Tight spacing between rows */
+    background-color: transparent !important;
+    border: 1px solid transparent !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
 }
 
+/* 3. Your custom gold hover logic */
+.Uniswap [class*="TokenRow"]:hover, 
 .Uniswap [class*="TokenButton"]:hover,
-.Uniswap [class*="TokenRow"]:hover {
-  background-color: rgba(210, 157, 92, 0.1) !important;
+.Uniswap [class*="MenuItem"]:hover {
+    background-color: rgba(210, 157, 92, 0.1) !important;
+    border: 1px solid #d29d5c !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
 }
 
-/* Ensure single-line layout for token info */
-.Uniswap [class*="TokenInfo"] {
-  display: flex !important;
-  align-items: center !important;
-  gap: 12px !important;
-  white-space: nowrap !important;
+/* 4. Force Single-Line & Prevent Stretching */
+.Uniswap [class*="TokenInfo"],
+.Uniswap [class*="TokenButtonRow"],
+.fSbWGf {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    width: 100% !important;
+    height: 100% !important;
 }
 
-/* Fix token name/symbol layout */
+/* 5. Text Visibility (White) */
+.Uniswap [class*="TokenButtonRow"] span,
+.ejrjYf span, 
+.fSbWGf span,
 .Uniswap [class*="TokenName"],
-.Uniswap [class*="TokenSymbol"] {
-  display: inline !important;
-  line-height: 1.4 !important;
+.Uniswap [class*="Row"] {
+    color: #FFFFFF !important;
+    opacity: 1 !important;
 }
 
-/* Adjust balance alignment */
+/* 6. Gold Dropdown Arrow */
+.Uniswap [class*="TokenButtonRow"] svg {
+    color: #d29d5c !important;
+}
+
+/* 7. Anchor Balance to the Right */
 .Uniswap [class*="TokenBalance"] {
-  margin-left: auto !important;
-  white-space: nowrap !important;
+    margin-left: auto !important;
+    padding-left: 12px !important;
+    flex-shrink: 0 !important;
+}
+/* 1. Kill the Absolute Positioning */
+/* We use !important to override the inline 'top' and 'position: absolute' styles */
+.Uniswap [class*="TokenButton"],
+.Uniswap [class*="TokenRow"],
+.cUAlTO.hgPJpt {
+    position: relative !important; 
+    top: auto !important;
+    left: auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    height: 64px !important; /* Fixed height for each row */
+    margin-bottom: 4px !important;
+    background-color: transparent !important;
+    border: 1px solid transparent !important;
+    box-sizing: border-box !important;
 }
 
-/* Fix logo sizing */
-.Uniswap [class*="TokenLogo"] {
-  width: 32px !important;
-  height: 32px !important;
-  flex-shrink: 0 !important;
+/* 2. Re-enable your custom Gold Hover */
+.Uniswap [class*="TokenButton"]:hover,
+.cUAlTO.hgPJpt:hover {
+    background-color: rgba(210, 157, 92, 0.1) !important;
+    border: 1px solid #d29d5c !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+}
+
+/* 3. Force Text Visibility (ETH, EBONDS, etc.) */
+/* This targets the subhead and caption classes seen in your HTML */
+.Uniswap [class*="cyOVDr"], 
+.Uniswap [class*="subhead"],
+.Uniswap [class*="iLnOJh"],
+.Uniswap [class*="caption"],
+.Uniswap span {
+    color: #FFFFFF !important;
+    opacity: 1 !important;
+}
+
+/* 4. Fix the Token Info Layout */
+.Uniswap [class*="iwvpyb"],
+.Uniswap [class*="Column"] {
+    flex-direction: column !important;
+    justify-content: center !important;
+    text-align: left !important;
+    margin-left: 12px !important;
+}
+
+/* 5. Hide the Ghost Grey Background div you found earlier */
+.fAuDQJ, 
+[class*="TokenOptions__OnHover"] {
+    display: none !important;
+}
+
+/* 6. Ensure the parent container doesn't have a fixed height that cuts tokens off */
+.Uniswap div[style*="height: 224px"] {
+    height: auto !important;
+    min-height: 224px !important;
+    display: flex !important;
+    flex-direction: column !important;
 }

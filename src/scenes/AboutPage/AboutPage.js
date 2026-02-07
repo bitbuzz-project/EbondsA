@@ -26,7 +26,7 @@ const MY_TOKEN_LIST = [
     symbol: 'EBONDS',
     decimals: 18,
     chainId: 42161,
-    logoURI: 'https://raw.githubusercontent.com/uniswap/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png' // Replace with your hosted logo URL if available
+    logoURI: 'https://arbiscan.io/token/images/ebondsfinance_32.png' // Replace with your hosted logo URL if available
   },
   {
     name: 'Esir',
@@ -34,7 +34,7 @@ const MY_TOKEN_LIST = [
     symbol: 'ESIR',
     decimals: 18,
     chainId: 42161,
-    logoURI: 'https://raw.githubusercontent.com/uniswap/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png' // Replace with your hosted logo URL
+    logoURI: 'https://arbiscan.io/token/images/ebondsesir_64.png' // Replace with your hosted logo URL
   },
   {
     name: 'USD Coin (Arb1)',
@@ -49,7 +49,7 @@ const MY_TOKEN_LIST = [
 const goldTheme = {
   primary: '#FFFFFF',
   secondary: '#94a3b8',
-  interactive: '#131a25',
+  interactive: 'transparent', // Change this to transparent to kill the grey hover
   container: '#0a1019',
   module: '#05090f',
   accent: '#d29d5c',
