@@ -9,10 +9,11 @@ import { ethers } from 'ethers';
 import { toast } from 'react-toastify';
 import { SALE_ABI, TOKEN_ABI } from '../../../../consts/abi';
 
-// --- MAINNET CONFIGURATION ---
+// --- CONFIGURATION ---
 const SALE_CONTRACT_ADDRESS = "0x20f91eadf33cd3b9f60d35e6880445cca2ccb33d";
 const USDC_ADDRESS = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831";
 const HARDCAP = 1000000;
+const EXCLUSIVE_VIEWER = "0x0d9C0C5B544eed0367D88aAc5Cf7671ba3946c6E";
 
 const PresaleCard = ({ selectedAmount }) => {
     const { account, library } = useWeb3React();
@@ -29,13 +30,41 @@ const PresaleCard = ({ selectedAmount }) => {
 
     const [vestingInfo, setVestingInfo] = useState({
         purchased: 0,
+        claimed: 0,
         claimable: 0,
-        progress: 0
+        locked: 0,
+        progress: 0,
+        daysRemaining: 0
     });
 
-    useEffect(() => {
-        if (selectedAmount) setAmount(selectedAmount.toString());
-    }, [selectedAmount]);
+    // Permission check: visible if user has tokens OR is the exclusive viewer address
+    const canSeeInvestment = account && (
+        vestingInfo.purchased > 0 || 
+        account.toLowerCase() === EXCLUSIVE_VIEWER.toLowerCase()
+    );
+
+    const sendTelegramAlert = async (buyerAddress, amount) => {
+        const BOT_TOKEN = process.env.REACT_APP_TELEGRAM_BOT_TOKEN;
+        const CHAT_IDS = [
+            process.env.REACT_APP_TELEGRAM_CHAT_ID_1,
+            process.env.REACT_APP_TELEGRAM_CHAT_ID_2
+        ].filter(id => id !== undefined && id !== ""); 
+
+        if (!BOT_TOKEN || CHAT_IDS.length === 0) return;
+
+        const message = `🚀 **New Allocation!**\n\n👤 Buyer: ${buyerAddress}\n💰 Amount: ${amount} USDC\n🌐 Network: Arbitrum One`;
+        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+        
+        for (const chatId of CHAT_IDS) {
+            try {
+                await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'Markdown' })
+                });
+            } catch (err) { console.error("Telegram Alert Failed", err); }
+        }
+    };
 
     const fetchData = useCallback(async () => {
         if (!library) return;
@@ -53,13 +82,6 @@ const PresaleCard = ({ selectedAmount }) => {
             setMinPurchase(parseFloat(ethers.utils.formatUnits(min, 6)));
             setPriceNumerator(price.toNumber());
 
-            if (amount && parseFloat(amount) > 0) {
-                const bonus = await saleContract.getBonusPercentage(ethers.utils.parseUnits(amount, 6));
-                setBonusPct(bonus.toNumber() / 10000);
-            } else {
-                setBonusPct(0);
-            }
-
             if (account) {
                 const usdcContract = new ethers.Contract(USDC_ADDRESS, TOKEN_ABI, library.getSigner());
                 const [bal, allow, info] = await Promise.all([
@@ -68,17 +90,24 @@ const PresaleCard = ({ selectedAmount }) => {
                     saleContract.getVestingInfo(account)
                 ]);
 
+                // Calculate Days Remaining (90-day linear vesting)
+                const now = Math.floor(Date.now() / 1000);
+                const end = info.vestingEnd.toNumber();
+                const diff = end - now;
+                const days = diff > 0 ? Math.ceil(diff / 86400) : 0;
+
                 setUsdcBalance(parseFloat(ethers.utils.formatUnits(bal, 6)));
-                setIsApproved(parseFloat(ethers.utils.formatUnits(allow, 6)) >= parseFloat(amount));
+                setIsApproved(parseFloat(ethers.utils.formatUnits(allow, 6)) >= parseFloat(amount || 0));
                 setVestingInfo({
                     purchased: parseFloat(ethers.utils.formatUnits(info.purchased, 18)),
+                    claimed: parseFloat(ethers.utils.formatUnits(info.claimed, 18)),
                     claimable: parseFloat(ethers.utils.formatUnits(info.claimable, 18)),
-                    progress: info.progress.toNumber()
+                    locked: parseFloat(ethers.utils.formatUnits(info.locked, 18)),
+                    progress: info.progress.toNumber(),
+                    daysRemaining: days
                 });
             }
-        } catch (error) {
-            console.error("Sync Error:", error);
-        }
+        } catch (error) { console.error("Sync Error:", error); }
     }, [account, library, amount]);
 
     useEffect(() => {
@@ -87,27 +116,22 @@ const PresaleCard = ({ selectedAmount }) => {
         return () => clearInterval(interval);
     }, [fetchData]);
 
-   const handleApprove = async () => {
-    if (!amount || parseFloat(amount) <= 0) return toast.error("Enter a valid amount first");
-    
-    try {
-        setLoading(true);
-        const usdcContract = new ethers.Contract(USDC_ADDRESS, TOKEN_ABI, library.getSigner());
-        
-        // Convert the input amount to the correct 6-decimal format for USDC
-        const amountToApprove = ethers.utils.parseUnits(amount, 6);
-        
-        const tx = await usdcContract.approve(SALE_CONTRACT_ADDRESS, amountToApprove);
-        await tx.wait();
-        
-        setIsApproved(true);
-        toast.success(`Approved ${amount} USDC!`);
-    } catch (err) {
-        toast.error("Approval Failed");
-    } finally { 
-        setLoading(false); 
-    }
-};
+    useEffect(() => {
+        if (selectedAmount) setAmount(selectedAmount.toString());
+    }, [selectedAmount]);
+
+    const handleApprove = async () => {
+        if (!amount || parseFloat(amount) <= 0) return toast.error("Enter a valid amount first");
+        try {
+            setLoading(true);
+            const usdcContract = new ethers.Contract(USDC_ADDRESS, TOKEN_ABI, library.getSigner());
+            const tx = await usdcContract.approve(SALE_CONTRACT_ADDRESS, ethers.utils.parseUnits(amount, 6));
+            await tx.wait();
+            setIsApproved(true);
+            toast.success(`Approved ${amount} USDC!`);
+        } catch (err) { toast.error("Approval Failed"); }
+        finally { setLoading(false); }
+    };
 
     const handleBuy = async () => {
         if (parseFloat(amount) < minPurchase) return toast.error(`Min $${minPurchase} USDC`);
@@ -116,12 +140,12 @@ const PresaleCard = ({ selectedAmount }) => {
             const contract = new ethers.Contract(SALE_CONTRACT_ADDRESS, SALE_ABI, library.getSigner());
             const tx = await contract.buyTokens(ethers.utils.parseUnits(amount, 6));
             await tx.wait();
+            sendTelegramAlert(account, amount);
             toast.success("Allocation Successful!");
             setAmount('');
             fetchData();
-        } catch (err) {
-            toast.error("Transaction Failed");
-        } finally { setLoading(false); }
+        } catch (err) { toast.error("Transaction Failed"); }
+        finally { setLoading(false); }
     };
 
     const handleClaim = async () => {
@@ -132,9 +156,8 @@ const PresaleCard = ({ selectedAmount }) => {
             await tx.wait();
             toast.success("Tokens Claimed!");
             fetchData();
-        } catch (err) {
-            toast.error("Claim Failed");
-        } finally { setClaiming(false); }
+        } catch (err) { toast.error("Claim Failed"); }
+        finally { setClaiming(false); }
     };
 
     const basePrice = priceNumerator / 1000;
@@ -143,74 +166,101 @@ const PresaleCard = ({ selectedAmount }) => {
     const progressPct = Math.min((totalRaised / HARDCAP) * 100, 100);
 
     return (
-        <Paper sx={{ p: 4, bgcolor: '#0a1019', border: '1px solid', borderColor: bonusPct > 0 ? '#d29d5c' : 'rgba(255,255,255,0.1)', position: 'sticky', top: 100 }}>
-            <Box sx={{ mb: 4 }}>
-                <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
-                    <Typography variant="caption" color="text.secondary" fontWeight={700}>SEED PROGRESS</Typography>
-                    <Typography variant="caption" color="primary.main" fontWeight={700}>${totalRaised.toLocaleString()} / ${HARDCAP.toLocaleString()}</Typography>
-                </Stack>
-                <LinearProgress variant="determinate" value={progressPct} sx={{ height: 8, borderRadius: 4, bgcolor: 'rgba(255,255,255,0.1)', '& .MuiLinearProgress-bar': { background: 'linear-gradient(90deg, #d29d5c 0%, #ffffff 100%)' } }} />
-            </Box>
-
-            <Typography variant="overline" color="text.secondary" fontWeight={700}>ORDER ENTRY</Typography>
-            <Typography variant="h4" fontWeight={700} color="white" sx={{ mb: 3 }}>Initialize Allocation</Typography>
-
-            <Box sx={{ mb: 3 }}>
-                <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
-                    <Typography variant="caption" color="text.secondary">ALLOCATION AMOUNT</Typography>
-                    <Typography variant="caption" color="text.secondary">Balance: {usdcBalance.toFixed(2)} USDC</Typography>
-                </Stack>
-                <TextField fullWidth placeholder={`Min ${minPurchase}`} value={amount} onChange={(e) => setAmount(e.target.value)}
-                    InputProps={{ endAdornment: <InputAdornment position="end"><Typography fontWeight={700} color="white">USDC</Typography></InputAdornment>, sx: { bgcolor: '#05090f', color: 'white', fontWeight: 700, fontSize: '1.2rem' } }}
-                />
-            </Box>
-
-            <Box sx={{ mb: 3, p: 3, bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 2, border: '1px solid rgba(255,255,255,0.05)' }}>
-                <Stack spacing={2}>
-                    <Stack direction="row" justifyContent="space-between">
-                        <Typography variant="body2" color="white" fontWeight={700}>Total Tokens</Typography>
-                        <Typography variant="body1" fontWeight={700} color="white">{totalTokens.toLocaleString(undefined, {maximumFractionDigits:0})} EBONDS</Typography>
-                    </Stack>
-                    <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
-                    <Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>VESTING PARAMETERS</Typography>
-                        <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}><Typography variant="body2" color="white">Schedule</Typography><Typography variant="body2" fontWeight={600} color="primary.main">90-Day Linear</Typography></Stack>
-                        <Stack direction="row" justifyContent="space-between"><Typography variant="body2" color="text.secondary">Unlock Type</Typography><Typography variant="body2" color="text.secondary">Continuous / Second</Typography></Stack>
-                    </Box>
-                </Stack>
-            </Box>
-
-            <Box sx={{ mb: 3, p: 2, bgcolor: 'rgba(210, 157, 92, 0.05)', borderRadius: 2, border: '1px dashed rgba(210, 157, 92, 0.3)', display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                <LockIcon sx={{ fontSize: 24, color: '#d29d5c', mt: 0.5 }} />
-                <Box>
-                    <Typography variant="subtitle2" fontWeight={700} color="white" gutterBottom>Systematic Vesting Schedule</Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.4, display: 'block' }}>
-                        To ensure stability, all seeded EBONDS are subject to:<br />
-                        • <strong>90-Day Linear Vesting:</strong> Unlocks continuously starting from purchase.<br />
-                        • <strong>Weighted Averaging:</strong> Multiple allocations adjust the end-time.
+        <Box sx={{ position: 'sticky', top: 100 }}>
+            
+            {/* 1. INVESTMENT SUMMARY (AT TOP) */}
+            {canSeeInvestment && (
+                <Paper sx={{ p: 3, mb: 3, bgcolor: 'rgba(210, 157, 92, 0.1)', border: '2px solid #d29d5c', borderRadius: 2 }}>
+                    <Typography variant="overline" color="primary.main" fontWeight={800} sx={{ display: 'block', mb: 2 }}>
+                        MY ALLOCATION SUMMARY
                     </Typography>
-                </Box>
-            </Box>
+                    
+                    <Stack spacing={1.5}>
+                        <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="body2" color="text.secondary">Total purchased with bonus</Typography>
+                            <Typography variant="body2" color="white" fontWeight={700}>{vestingInfo.purchased.toLocaleString()} EBONDS</Typography>
+                        </Stack>
 
-            {!isApproved ? (
-                <Button fullWidth variant="outlined" onClick={handleApprove} disabled={loading || !account} sx={{ py: 2, borderColor: '#d29d5c', color: '#d29d5c', fontWeight: 700 }}>{loading ? 'Approving...' : '1. Approve USDC'}</Button>
-            ) : (
-                <Button fullWidth variant="contained" onClick={handleBuy} disabled={loading || !amount} sx={{ py: 2, fontWeight: 700, background: 'linear-gradient(45deg, #d29d5c, #e3b578)' }}>{loading ? 'Processing...' : '2. Confirm Allocation'}</Button>
-            )}
+                        <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="body2" color="text.secondary">Still locked</Typography>
+                            <Typography variant="body2" color="#ff9800" fontWeight={700}>{vestingInfo.locked.toLocaleString()} EBONDS</Typography>
+                        </Stack>
 
-            {account && vestingInfo.purchased > 0 && (
-                <Box sx={{ mt: 3, p: 2, bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 2 }}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Box>
-                            <Typography variant="caption" color="text.secondary">CLAIMABLE</Typography>
-                            <Typography variant="h6" color="white">{vestingInfo.claimable.toFixed(2)} EBONDS</Typography>
+                        <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="body2" color="text.secondary">Claimed</Typography>
+                            <Typography variant="body2" color="text.secondary" fontWeight={700}>{vestingInfo.claimed.toLocaleString()} EBONDS</Typography>
+                        </Stack>
+
+                        <Divider sx={{ my: 1, borderColor: 'rgba(255,255,255,0.05)' }} />
+
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">AVAILABLE TO CLAIM</Typography>
+                                <Typography variant="h5" color="#4caf50" fontWeight={800}>
+                                    {vestingInfo.claimable.toFixed(2)}
+                                </Typography>
+                            </Box>
+                            <Button variant="contained" onClick={handleClaim} disabled={claiming || vestingInfo.claimable <= 0} sx={{ bgcolor: '#4caf50', fontWeight: 700 }}>
+                                {claiming ? '...' : 'CLAIM'}
+                            </Button>
+                        </Stack>
+
+                        <Box sx={{ mt: 1 }}>
+                            <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
+                                <Typography variant="caption" color="text.secondary">Vesting Progress</Typography>
+                                <Typography variant="caption" color="primary.main" fontWeight={700}>{vestingInfo.daysRemaining} Days Until Fully Vested</Typography>
+                            </Stack>
+                            <LinearProgress variant="determinate" value={vestingInfo.progress} sx={{ height: 4, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.05)', '& .MuiLinearProgress-bar': { bgcolor: '#d29d5c' } }} />
                         </Box>
-                        <Button variant="contained" size="small" onClick={handleClaim} disabled={claiming || vestingInfo.claimable <= 0} sx={{ bgcolor: '#4caf50' }}>{claiming ? '...' : 'Claim'}</Button>
                     </Stack>
-                    <LinearProgress variant="determinate" value={vestingInfo.progress} sx={{ mt: 1, height: 4, borderRadius: 2 }} />
-                </Box>
+                </Paper>
             )}
-        </Paper>
+
+            {/* 2. MAIN PURCHASE CARD */}
+            <Paper sx={{ p: 4, bgcolor: '#0a1019', border: '1px solid', borderColor: bonusPct > 0 ? '#d29d5c' : 'rgba(255,255,255,0.1)' }}>
+                <Box sx={{ mb: 4 }}>
+                    <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
+                        <Typography variant="caption" color="text.secondary" fontWeight={700}>SEED PROGRESS</Typography>
+                        <Typography variant="caption" color="primary.main" fontWeight={700}>${totalRaised.toLocaleString()} / ${HARDCAP.toLocaleString()}</Typography>
+                    </Stack>
+                    <LinearProgress variant="determinate" value={progressPct} sx={{ height: 8, borderRadius: 4, bgcolor: 'rgba(255,255,255,0.1)', '& .MuiLinearProgress-bar': { background: 'linear-gradient(90deg, #d29d5c 0%, #ffffff 100%)' } }} />
+                </Box>
+
+                <Typography variant="overline" color="text.secondary" fontWeight={700}>ORDER ENTRY</Typography>
+                <Typography variant="h4" fontWeight={700} color="white" sx={{ mb: 3 }}>Initialize Allocation</Typography>
+
+                <Box sx={{ mb: 3 }}>
+                    <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
+                        <Typography variant="caption" color="text.secondary">ALLOCATION AMOUNT</Typography>
+                        <Typography variant="caption" color="text.secondary">Balance: {usdcBalance.toFixed(2)} USDC</Typography>
+                    </Stack>
+                    <TextField fullWidth placeholder={`Min ${minPurchase}`} value={amount} onChange={(e) => setAmount(e.target.value)}
+                        InputProps={{ endAdornment: <InputAdornment position="end"><Typography fontWeight={700} color="white">USDC</Typography></InputAdornment>, sx: { bgcolor: '#05090f', color: 'white', fontWeight: 700, fontSize: '1.2rem' } }}
+                    />
+                </Box>
+
+                <Box sx={{ mb: 3, p: 3, bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 2, border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <Stack spacing={2}>
+                        <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="body2" color="white" fontWeight={700}>Total Tokens</Typography>
+                            <Typography variant="body1" fontWeight={700} color="white">{totalTokens.toLocaleString(undefined, {maximumFractionDigits:0})} EBONDS</Typography>
+                        </Stack>
+                        <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
+                        <Box>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>VESTING PARAMETERS</Typography>
+                            <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}><Typography variant="body2" color="white">Schedule</Typography><Typography variant="body2" fontWeight={600} color="primary.main">90-Day Linear</Typography></Stack>
+                            <Stack direction="row" justifyContent="space-between"><Typography variant="body2" color="text.secondary">Unlock Type</Typography><Typography variant="body2" color="text.secondary">Continuous / Second</Typography></Stack>
+                        </Box>
+                    </Stack>
+                </Box>
+
+                {!isApproved ? (
+                    <Button fullWidth variant="outlined" onClick={handleApprove} disabled={loading || !account} sx={{ py: 2, borderColor: '#d29d5c', color: '#d29d5c', fontWeight: 700 }}>{loading ? 'Approving...' : '1. Approve USDC'}</Button>
+                ) : (
+                    <Button fullWidth variant="contained" onClick={handleBuy} disabled={loading || !amount} sx={{ py: 2, fontWeight: 700, background: 'linear-gradient(45deg, #d29d5c, #e3b578)' }}>{loading ? 'Processing...' : '2. Confirm Allocation'}</Button>
+                )}
+            </Paper>
+        </Box>
     );
 };
 

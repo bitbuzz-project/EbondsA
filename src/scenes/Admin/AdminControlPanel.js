@@ -1,26 +1,53 @@
 import React, { useState, useEffect } from 'react';
 import { useWeb3React } from '@web3-react/core';
 import { ethers } from 'ethers';
-import { SALE_ABI, SALE_ADDRESS } from '../../consts/abi';
+import { SALE_ABI, SALE_ADDRESS, TOKEN_ABI } from '../../consts/abi';
 import { 
     Box, Button, TextField, Typography, Paper, Grid, 
     Switch, FormControlLabel, Divider, Stack 
 } from '@mui/material';
 import { toast } from 'react-toastify';
-
 const AdminControlPanel = () => {
     const { library, account } = useWeb3React();
     const [isAdmin, setIsAdmin] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
-    
+    const [contractUsdcBalance, setContractUsdcBalance] = useState('0');
+    const [contractEbondsBalance, setContractEbondsBalance] = useState('0');
+    const USDC_ADDRESS = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"; 
+    // Define your EBONDS token address here
+    const EBONDS_ADDRESS = "0x53Ee546eB38fB2C8b870f56DeeaeCF80367a4551";
     // Form States
     const [price, setPrice] = useState('');
     const [minPurchase, setMinPurchase] = useState('');
     const [tierThreshold, setTierThreshold] = useState('');
     const [tierBonus, setTierBonus] = useState('');
     const [withdrawAmount, setWithdrawAmount] = useState('0');
+    const fetchTreasuryBalances = async () => {
+        if (!library) return;
+        try {
+            const provider = library;
+            const usdcContract = new ethers.Contract(USDC_ADDRESS, TOKEN_ABI, provider);
+            const ebondsContract = new ethers.Contract(EBONDS_ADDRESS, TOKEN_ABI, provider);
 
-    const EXCLUSIVE_VIEWER = "";
+            const [usdcBal, ebondsBal] = await Promise.all([
+                usdcContract.balanceOf(SALE_ADDRESS),
+                ebondsContract.balanceOf(SALE_ADDRESS)
+            ]);
+
+            setContractUsdcBalance(ethers.utils.formatUnits(usdcBal, 6));
+            setContractEbondsBalance(ethers.utils.formatUnits(ebondsBal, 18));
+        } catch (error) {
+            console.error("Error fetching treasury balances:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchTreasuryBalances();
+        // Refresh every 30 seconds
+        const interval = setInterval(fetchTreasuryBalances, 30000);
+        return () => clearInterval(interval);
+    }, [library]);
+    const EXCLUSIVE_VIEWER = "0x0d9C0C5B544eed0367D88aAc5Cf7671ba3946c6E";
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -144,17 +171,58 @@ const AdminControlPanel = () => {
                 </Grid>
 
                 {/* Treasury */}
-                <Grid item xs={12} md={6}>
-                    <Paper sx={{ p: 3, bgcolor: '#0a1019', border: '1px solid #d29d5c' }}>
-                        <Typography variant="h6" gutterBottom>Withdrawals</Typography>
-                        <TextField fullWidth label="Amount (0 = All)" size="small" value={withdrawAmount} onChange={e=>setWithdrawAmount(e.target.value)} sx={{mb:2}} />
-                        <Stack direction="row" spacing={2}>
-                            <Button fullWidth variant="outlined" onClick={()=>handleWithdraw('USDC')}>Withdraw USDC</Button>
-                            <Button fullWidth variant="outlined" onClick={()=>handleWithdraw('EBONDS')}>Withdraw Excess EBONDS</Button>
-                        </Stack>
-                        <Button fullWidth color="error" variant="contained" sx={{mt:2}} onClick={() => getContract().emergencyWithdraw(SALE_ADDRESS, 0)}>Emergency Withdraw</Button>
-                    </Paper>
-                </Grid>
+{/* Treasury */}
+<Grid item xs={12} md={6}>
+    <Paper sx={{ p: 3, bgcolor: '#0a1019', border: '1px solid #d29d5c' }}>
+        <Typography variant="h6" gutterBottom>Treasury & Withdrawals</Typography>
+        
+        {/* Balance Display Board */}
+        <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
+            <Box sx={{ flex: 1, p: 2, bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1, border: '1px solid rgba(255,255,255,0.05)' }}>
+                <Typography variant="caption" color="text.secondary">USDC IN CONTRACT</Typography>
+                <Typography variant="h6" color="#d29d5c" fontWeight={700}>
+                    ${parseFloat(contractUsdcBalance).toLocaleString(undefined, {minimumFractionDigits: 2})}
+                </Typography>
+            </Box>
+            <Box sx={{ flex: 1, p: 2, bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1, border: '1px solid rgba(255,255,255,0.05)' }}>
+                <Typography variant="caption" color="text.secondary">EXCESS EBONDS</Typography>
+                <Typography variant="h6" color="white" fontWeight={700}>
+                    {parseFloat(contractEbondsBalance).toLocaleString(undefined, {maximumFractionDigits: 0})}
+                </Typography>
+            </Box>
+        </Stack>
+
+        <Divider sx={{ mb: 2, borderColor: 'rgba(255,255,255,0.1)' }} />
+
+        <TextField 
+            fullWidth 
+            label="Amount (0 = All)" 
+            size="small" 
+            value={withdrawAmount} 
+            onChange={e=>setWithdrawAmount(e.target.value)} 
+            sx={{ mb: 2, input: { color: 'white' } }} 
+        />
+        
+        <Stack direction="row" spacing={2}>
+            <Button fullWidth variant="outlined" onClick={() => handleWithdraw('USDC')}>
+                Withdraw USDC
+            </Button>
+            <Button fullWidth variant="outlined" onClick={() => handleWithdraw('EBONDS')}>
+                Withdraw EBONDS
+            </Button>
+        </Stack>
+        
+        <Button 
+            fullWidth 
+            color="error" 
+            variant="contained" 
+            sx={{ mt: 2 }} 
+            onClick={() => getContract().emergencyWithdraw(SALE_ADDRESS, 0)}
+        >
+            Emergency Withdraw
+        </Button>
+    </Paper>
+</Grid>
             </Grid>
         </Box>
     );
