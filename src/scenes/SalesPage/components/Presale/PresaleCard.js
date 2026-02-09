@@ -10,7 +10,7 @@ import { toast } from 'react-toastify';
 import { SALE_ABI, TOKEN_ABI } from '../../../../consts/abi';
 
 // --- CONFIGURATION ---
-const SALE_CONTRACT_ADDRESS = "0x20f91eadf33cd3b9f60d35e6880445cca2ccb33d";
+const SALE_CONTRACT_ADDRESS = "0x8e7B98F0eAC02dB3977fC4c4A79D3E1850c299fA";
 const USDC_ADDRESS = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831";
 const HARDCAP = 1000000;
 const EXCLUSIVE_VIEWER = "0x0d9C0C5B544eed0367D88aAc5Cf7671ba3946c6E";
@@ -172,7 +172,7 @@ const PresaleCard = ({ selectedAmount }) => {
             {canSeeInvestment && (
                 <Paper sx={{ p: 3, mb: 3, bgcolor: 'rgba(210, 157, 92, 0.1)', border: '2px solid #d29d5c', borderRadius: 2 }}>
                     <Typography variant="overline" color="primary.main" fontWeight={800} sx={{ display: 'block', mb: 2 }}>
-                        MY ALLOCATION SUMMARY
+                        MY INVESTMENT SUMMARY
                     </Typography>
                     
                     <Stack spacing={1.5}>

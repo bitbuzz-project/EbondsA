@@ -1,6 +1,6 @@
 // src/consts/abi.js
 
-export const SALE_ADDRESS = "0x20f91eadf33cd3b9f60d35e6880445cca2ccb33d"; // ADD THIS
+export const SALE_ADDRESS = "0x8e7B98F0eAC02dB3977fC4c4A79D3E1850c299fA"; // ADD THIS
 
 
 export const SALE_ABI = [

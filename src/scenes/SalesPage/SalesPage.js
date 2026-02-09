@@ -3,7 +3,7 @@ import { Box, Container, Grid, Typography, Stack, Chip } from '@mui/material';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import ShieldIcon from '@mui/icons-material/Shield';
 import LockIcon from '@mui/icons-material/Lock';
-
+import VestingTimeline from './components/VestingTimeline/VestingTimeline';
 import PresaleCard from './components/Presale/PresaleCard';
 import TierTable from './components/TierTable/TierTable';
 import BuybackStats from './components/BuybackStats/BuybackStats';
