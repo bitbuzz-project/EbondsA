@@ -8,7 +8,8 @@ import InsightsIcon from '@mui/icons-material/Insights';
 import GetAppIcon from '@mui/icons-material/GetApp'; // Used for Claim button
 import { useWeb3React } from '@web3-react/core';
 import { injected } from '../../connector';
-
+import { tokenContractAddress, abi as tokenAbi } from './components/StakeCard/services/consts';
+import { setBalance as setWalletBalance } from '../../features/userWalletSlice';
 // Components
 import StakeCard from './components/StakeCard/StakeCard';
 import WithdrawCard from './components/WithdrawCard/WithdrawCard';
@@ -62,52 +63,64 @@ const AllocationStaking = () => {
     const [loading, setLoading] = useState(true);
     const [claiming, setClaiming] = useState(false); // State for button loading
 
-    const fetchData = useCallback(async () => {
-        try {
-            setLoading(true);
-            const provider = new ethers.providers.JsonRpcProvider(RpcProvider);
-            const contract = new ethers.Contract(stakingContractAddress, abi, provider);
+const fetchData = useCallback(async () => {
+    try {
+        setLoading(true);
+        const provider = new ethers.providers.JsonRpcProvider(RpcProvider);
+        
+        // Contract Instances
+        const contract = new ethers.Contract(stakingContractAddress, abi, provider);
+        // NEW: Create instance for the EBONDS token contract to check wallet balance
+        const tokenContract = new ethers.Contract(tokenContractAddress, tokenAbi, provider);
 
-            const [esirP, ebondP] = await Promise.all([
-                fetchUSDTPrice().catch(() => 0), 
-                fetchEbPrice().catch(() => 0)
-            ]);
+        const [esirP, ebondP] = await Promise.all([
+            fetchUSDTPrice().catch(() => 0), 
+            fetchEbPrice().catch(() => 0)
+        ]);
 
-            const totalDepositsRaw = await contract.totalDeposits();
-            const paidOutRaw = await contract.paidOut();
-            
-            const totalDeposits = Math.floor(parseFloat(ethers.utils.formatUnits(totalDepositsRaw, FIXED_DECIMALS)));
-            const paidOut = Math.floor(parseFloat(ethers.utils.formatUnits(paidOutRaw, FIXED_DECIMALS)));
+        const totalDepositsRaw = await contract.totalDeposits();
+        const paidOutRaw = await contract.paidOut();
+        
+        const totalDeposits = Math.floor(parseFloat(ethers.utils.formatUnits(totalDepositsRaw, FIXED_DECIMALS)));
+        const paidOut = Math.floor(parseFloat(ethers.utils.formatUnits(paidOutRaw, FIXED_DECIMALS)));
 
-            const safePrice = esirP > 0 ? esirP : 1;
-            const apyVal = ((((1 + (safePrice / (0.865 * 1000))) ** 365) - 1) * 100);
+        const safePrice = esirP > 0 ? esirP : 1;
+        const apyVal = ((((1 + (safePrice / (0.865 * 1000))) ** 365) - 1) * 100);
 
-            let pendingVal = 0;
-            if (account) {
-                 try {
-                    const userInfo = await contract.userInfo(account);
-                    dispatch(setStakeBalance(userInfo.amount.toString())); 
-                    
-                    // Call pending() to get reward balance
-                    const pendingRaw = await contract.pending({ from: account }); 
-                    pendingVal = Math.floor(parseFloat(ethers.utils.formatUnits(pendingRaw, FIXED_DECIMALS)));
-                 } catch(e) { console.warn("User data fetch error", e); }
-            }
+        let pendingVal = 0;
+        if (account) {
+             try {
+                // 1. Fetch Staked Balance from Staking Contract
+                const userInfo = await contract.userInfo(account);
+                dispatch(setStakeBalance(userInfo.amount.toString())); 
 
-            setStats({
-                tvl: totalDeposits,
-                totalDistributed: paidOut,
-                apy: apyVal,
-                esirPrice: esirP,
-                ebondPrice: ebondP,
-                myPending: pendingVal
-            });
-            setLoading(false);
-        } catch (error) {
-            console.error("Staking Data Error:", error);
-            setLoading(false);
+                // 2. NEW: Fetch Available Balance from EBONDS Token Contract
+                // This updates the 'Available' balance shown in StakeCard
+                const walletBalanceRaw = await tokenContract.balanceOf(account);
+                dispatch(setWalletBalance(walletBalanceRaw.toString())); 
+                
+                // 3. Fetch Pending Rewards
+                const pendingRaw = await contract.pending({ from: account }); 
+                pendingVal = Math.floor(parseFloat(ethers.utils.formatUnits(pendingRaw, FIXED_DECIMALS)));
+             } catch(e) { 
+                console.warn("User data fetch error", e); 
+             }
         }
-    }, [account, dispatch]);
+
+        setStats({
+            tvl: totalDeposits,
+            totalDistributed: paidOut,
+            apy: apyVal,
+            esirPrice: esirP,
+            ebondPrice: ebondP,
+            myPending: pendingVal
+        });
+        setLoading(false);
+    } catch (error) {
+        console.error("Staking Data Error:", error);
+        setLoading(false);
+    }
+}, [account, dispatch]);
 
     useEffect(() => {
         fetchData();

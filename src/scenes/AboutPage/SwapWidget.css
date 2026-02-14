@@ -29,8 +29,8 @@
 .Uniswap [class*="TokenRow"]:hover, 
 .Uniswap [class*="TokenButton"]:hover,
 .Uniswap [class*="MenuItem"]:hover {
-    background-color: rgba(210, 157, 92, 0.1) !important;
-    border: 1px solid #d29d5c !important;
+    
+    
     border-radius: 8px !important;
     cursor: pointer !important;
 }
@@ -90,8 +90,8 @@
 .Uniswap [class*="TokenButton"]:hover,
 .cUAlTO.hgPJpt:hover {
     background-color: rgba(210, 157, 92, 0.1) !important;
-    border: 1px solid #d29d5c !important;
-    border-radius: 8px !important;
+    
+    
     cursor: pointer !important;
 }
 

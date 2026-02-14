@@ -129,7 +129,7 @@ const LandingPage = () => {
                 <span style={{ color: theme.palette.primary.main }}>With Systematic Execution</span>
               </Typography>
               <Typography variant="h4" sx={{ mb: 4, fontSize: { xs: '1.1rem', md: '1.6rem' }, color: 'text.secondary', fontWeight: 400, maxWidth: '90%' }}>
-                Automated on-chain strategies built to harvest volatility across market conditions.
+                Systematic on-chain strategies built to harvest volatility across market conditions.
               </Typography>
               <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 650, mb: 2, fontSize: '1.1rem', lineHeight: 1.8 }}>
               The updated system is built to operate based on market movement, not constant trading activity. Instead of relying on high volume, it is designed to respond to price changes as they happen, across both smaller and larger market moves.
@@ -256,7 +256,7 @@ const LandingPage = () => {
                         <CurrencyBitcoinIcon sx={{ color: '#F7931A' }} />
                         <Typography variant="subtitle1" fontWeight={700} color="white">BTC Strategy (40%)</Typography>
                       </Stack>
-                      <Typography variant="body2" color="text.secondary">Target: 24% APY <br/> Digital Gold Volatility Harvesting.</Typography>
+                      <Typography variant="body2" color="text.secondary">Target: 20%-30% APY <br/> Digital Gold Volatility Harvesting.</Typography>
                     </Box>
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -265,7 +265,7 @@ const LandingPage = () => {
                         <LinkIcon sx={{ color: '#2A5ADA' }} />
                         <Typography variant="subtitle1" fontWeight={700} color="white">LINK Strategy (60%)</Typography>
                       </Stack>
-                      <Typography variant="body2" color="text.secondary">Target: 60% APY <br/> DeFi Core Asset Harvesting.</Typography>
+                      <Typography variant="body2" color="text.secondary">Target: 60%-200% APY <br/> DeFi Core Volatility Harvesting.</Typography>
                     </Box>
                   </Grid>
                 </Grid>
@@ -273,7 +273,8 @@ const LandingPage = () => {
                 <List spacing={2}>
                   {[
                     "Sustainable ESIR APY (4%–12%), prioritizing scalability and inflation control.",
-                    "Revenue allocation focused on liquidity depth, with an EBONDS buyback reference target of $0.90.",
+                    "Revenue allocation focused on liquidity depth.",
+                    "EBONDS buyback target of $0.90.",
                     "Native USDC settlement to reduce operational overhead and execution friction.",
                     "Significantly expanded buyback capacity across both high- and low-volume market regimes.",
                     "Enhanced rewards and allocation bonuses for larger participants.",
@@ -292,19 +293,43 @@ const LandingPage = () => {
           </Grid>
 
           {/* Closure Statement */}
-          <Box sx={{ mt: 10, textAlign: 'center', maxWidth: 900, mx: 'auto' }}>
-            <Typography variant="h5" color="white" fontWeight={400} sx={{lineHeight: 1.6 }}>
-          Maximum Exposure Strategy</Typography>
-           <Typography variant="body1" color="text.secondary" sx={{ mb: 1.5 , fontSize: '1.2rem' }}>
-               Limits exposure and rebalances selling surplus exposure when above target and realizing a profit, When below exposure, rebalances increasing back to target exposure, Each sell event generates a profit. Target Exposure changes dynamically, increasing on deeper corrections (fear) and lowering on new multiples (euphoria).       
-                </Typography>
-            <Typography variant="h5" color="white" fontWeight={400} sx={{lineHeight: 1.6 }}>
-          Active DCA Strategies</Typography>
-           <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
-               Buying down at equidistant price levels and selling up to capitalize on the volatility, realizing a profit on each move upwards after a previous buy event.     
-                </Typography>
-           
-          </Box>
+        <Box sx={{ mt: 10, textAlign: 'left', maxWidth: 900, mx: 'auto' }}>
+  <Typography variant="h5" color="white" fontWeight={400} sx={{ lineHeight: 1.6, mb: 2 }}>
+    Maximum Exposure Strategy
+  </Typography>
+  <Box component="ul" sx={{ color: 'text.secondary', fontSize: '1.1rem', mb: 4, pl: 3 }}>
+    <Typography component="li" sx={{ mb: 1, fontSize: '1.1rem' }}>
+      When above target exposure, rebalances selling surplus exposure
+    </Typography>
+    <Typography component="li" sx={{ mb: 1, fontSize: '1.1rem' }}>
+      When below exposure, rebalances buying back to target exposure
+    </Typography>
+    <Typography component="li" sx={{ mb: 1, fontSize: '1.1rem' }}>
+      Each sell event generates a profit
+    </Typography>
+    <Typography component="li" sx={{ mb: 1, fontSize: '1.1rem' }}>
+      Target Exposure changes dynamically according to market cycles
+    </Typography>
+    <Typography component="li" sx={{ mb: 1, fontSize: '1.1rem' }}>
+      Increasing on deeper corrections (fear) and lowering on new multiples (euphoria)
+    </Typography>
+  </Box>
+
+  <Typography variant="h5" color="white" fontWeight={400} sx={{ lineHeight: 1.6, mb: 2 }}>
+    Active DCA Strategies
+  </Typography>
+  <Box component="ul" sx={{ color: 'text.secondary', fontSize: '1.1rem', pl: 3 }}>
+    <Typography component="li" sx={{ mb: 1, fontSize: '1.1rem' }}>
+      Buying down at equidistant price levels
+    </Typography>
+    <Typography component="li" sx={{ mb: 1, fontSize: '1.1rem' }}>
+      Selling up to capitalize on the volatility
+    </Typography>
+    <Typography component="li" sx={{ mb: 1, fontSize: '1.1rem' }}>
+      Realizing a profit on each move upwards after a previous buy event
+    </Typography>
+  </Box>
+</Box>
         </Container>
       </Box>
 

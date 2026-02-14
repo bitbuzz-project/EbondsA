@@ -3,7 +3,7 @@ import axios from 'axios';
 import { API_LINK, LAST_TRADE } from '../consts/api';
 
 // This is the specific pool link from your original Ebmedia.js
-const GEKKO_API_LINK = 'https://api.geckoterminal.com/api/v2/networks/arbitrum/pools/0x67ac5588bbfbcf0ffe2e24608d9b4e7102345835';
+const GEKKO_API_LINK = 'https://api.geckoterminal.com/api/v2/networks/arbitrum/pools/0xe7F46aD26d05A8ca94b873c572e870FE09f358b8';
 
 // --- Logic from your original media.js ---
 export async function fetchUSDTPrice() {

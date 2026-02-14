@@ -27,6 +27,7 @@ const PresaleCard = ({ selectedAmount }) => {
     const [minPurchase, setMinPurchase] = useState(200);
     const [priceNumerator, setPriceNumerator] = useState(865);
     const [bonusPct, setBonusPct] = useState(0);
+    const [estimatedTokens, setEstimatedTokens] = useState(0);
 
     const [vestingInfo, setVestingInfo] = useState({
         purchased: 0,
@@ -90,25 +91,53 @@ const PresaleCard = ({ selectedAmount }) => {
                     saleContract.getVestingInfo(account)
                 ]);
 
-                // Calculate Days Remaining (90-day linear vesting)
+                /** * v4 Contract returns 7 values: 
+                 * [0]claimableAmount, [1]vestingAmount, [2]vestedFromSchedule, [3]totalClaimable, 
+                 * [4]totalClaimed, [5]vestingStartTime, [6]vestingEndTime 
+                 */
+                const poolClaimable = info[0];
+                const vAmount = info[1];
+                const vFromSchedule = info[2];
+                const totalClaimable = info[3];
+                const totalClaimed = info[4];
+                const vStart = info[5];
+                const vEnd = info[6];
+
                 const now = Math.floor(Date.now() / 1000);
-                const end = info.vestingEnd.toNumber();
-                const diff = end - now;
-                const days = diff > 0 ? Math.ceil(diff / 86400) : 0;
+                const days = vEnd.gt(now) ? Math.ceil((vEnd.toNumber() - now) / 86400) : 0;
+
+                // Calculate manual progress based on start and end times
+                let progress = 0;
+                if (vEnd.gt(vStart)) {
+                    progress = Math.min(100, ((now - vStart.toNumber()) / (vEnd.toNumber() - vStart.toNumber())) * 100);
+                    if (progress < 0) progress = 0;
+                }
 
                 setUsdcBalance(parseFloat(ethers.utils.formatUnits(bal, 6)));
                 setIsApproved(parseFloat(ethers.utils.formatUnits(allow, 6)) >= parseFloat(amount || 0));
+                
                 setVestingInfo({
-                    purchased: parseFloat(ethers.utils.formatUnits(info.purchased, 18)),
-                    claimed: parseFloat(ethers.utils.formatUnits(info.claimed, 18)),
-                    claimable: parseFloat(ethers.utils.formatUnits(info.claimable, 18)),
-                    locked: parseFloat(ethers.utils.formatUnits(info.locked, 18)),
-                    progress: info.progress.toNumber(),
+                    purchased: parseFloat(ethers.utils.formatUnits(poolClaimable.add(vAmount), 18)),
+                    claimed: parseFloat(ethers.utils.formatUnits(totalClaimed, 18)),
+                    claimable: parseFloat(ethers.utils.formatUnits(totalClaimable, 18)),
+                    locked: parseFloat(ethers.utils.formatUnits(vAmount.sub(vFromSchedule), 18)),
+                    progress: progress,
                     daysRemaining: days
                 });
             }
+
+            // Get dynamic quote for the input amount
+            if (amount && parseFloat(amount) >= minPurchase) {
+                const quote = await saleContract.getQuote(ethers.utils.parseUnits(amount, 6));
+                setEstimatedTokens(parseFloat(ethers.utils.formatUnits(quote.totalTokens, 18)));
+                setBonusPct(quote.bonusPercent.toNumber() / 10000);
+            } else {
+                setEstimatedTokens(0);
+                setBonusPct(0);
+            }
+
         } catch (error) { console.error("Sync Error:", error); }
-    }, [account, library, amount]);
+    }, [account, library, amount, minPurchase]);
 
     useEffect(() => {
         fetchData();
@@ -129,6 +158,7 @@ const PresaleCard = ({ selectedAmount }) => {
             await tx.wait();
             setIsApproved(true);
             toast.success(`Approved ${amount} USDC!`);
+            fetchData();
         } catch (err) { toast.error("Approval Failed"); }
         finally { setLoading(false); }
     };
@@ -138,6 +168,11 @@ const PresaleCard = ({ selectedAmount }) => {
         try {
             setLoading(true);
             const contract = new ethers.Contract(SALE_CONTRACT_ADDRESS, SALE_ABI, library.getSigner());
+            
+            // Check contract validation
+            const [isValid, message] = await contract.canPurchase(ethers.utils.parseUnits(amount, 6));
+            if (!isValid) return toast.error(message);
+
             const tx = await contract.buyTokens(ethers.utils.parseUnits(amount, 6));
             await tx.wait();
             sendTelegramAlert(account, amount);
@@ -160,9 +195,6 @@ const PresaleCard = ({ selectedAmount }) => {
         finally { setClaiming(false); }
     };
 
-    const basePrice = priceNumerator / 1000;
-    const rawTokens = amount ? parseFloat(amount) / basePrice : 0;
-    const totalTokens = rawTokens * (1 + bonusPct);
     const progressPct = Math.min((totalRaised / HARDCAP) * 100, 100);
 
     return (
@@ -172,12 +204,12 @@ const PresaleCard = ({ selectedAmount }) => {
             {canSeeInvestment && (
                 <Paper sx={{ p: 3, mb: 3, bgcolor: 'rgba(210, 157, 92, 0.1)', border: '2px solid #d29d5c', borderRadius: 2 }}>
                     <Typography variant="overline" color="primary.main" fontWeight={800} sx={{ display: 'block', mb: 2 }}>
-                        MY INVESTMENT SUMMARY
+                        MY SEED SUMMARY
                     </Typography>
                     
                     <Stack spacing={1.5}>
                         <Stack direction="row" justifyContent="space-between">
-                            <Typography variant="body2" color="text.secondary">Total purchased with bonus</Typography>
+                            <Typography variant="body2" color="text.secondary">Total EBONDS with bonus</Typography>
                             <Typography variant="body2" color="white" fontWeight={700}>{vestingInfo.purchased.toLocaleString()} EBONDS</Typography>
                         </Stack>
 
@@ -243,13 +275,13 @@ const PresaleCard = ({ selectedAmount }) => {
                     <Stack spacing={2}>
                         <Stack direction="row" justifyContent="space-between">
                             <Typography variant="body2" color="white" fontWeight={700}>Total Tokens</Typography>
-                            <Typography variant="body1" fontWeight={700} color="white">{totalTokens.toLocaleString(undefined, {maximumFractionDigits:0})} EBONDS</Typography>
+                            <Typography variant="body1" fontWeight={700} color="white">{estimatedTokens.toLocaleString(undefined, {maximumFractionDigits:0})} EBONDS</Typography>
                         </Stack>
                         <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
                         <Box>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>VESTING PARAMETERS</Typography>
                             <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}><Typography variant="body2" color="white">Schedule</Typography><Typography variant="body2" fontWeight={600} color="primary.main">90-Day Linear</Typography></Stack>
-                            <Stack direction="row" justifyContent="space-between"><Typography variant="body2" color="text.secondary">Unlock Type</Typography><Typography variant="body2" color="text.secondary">Continuous / Second</Typography></Stack>
+                            <Stack direction="row" justifyContent="space-between"><Typography variant="body2" color="text.secondary">Unlock Type</Typography><Typography variant="body2" color="text.secondary">Continuous</Typography></Stack>
                         </Box>
                     </Stack>
                 </Box>

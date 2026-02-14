@@ -25,7 +25,7 @@ const AdminDashboard = () => {
         minPurchase: 0, price: 0, isPaused: false, tiers: []
     });
 
-    const HARDCAP = 1000000; // $1M USDC [cite: 6]
+    const HARDCAP = 1000000; // $1M USDC
 
     const fetchGlobalStats = async () => {
         try {
@@ -33,14 +33,14 @@ const AdminDashboard = () => {
             const contract = new ethers.Contract(SALE_ADDRESS, SALE_ABI, provider);
 
             const [raised, sold, count, unclaimed, min, priceNum, paused, tiers] = await Promise.all([
-                contract.totalUsdcRaised(), // [cite: 61]
-                contract.totalEbondsSold(), // [cite: 62]
-                contract.getParticipantCount(), // [cite: 96]
-                contract.getTotalUnclaimedTokens(), // 
-                contract.minimumPurchaseUSDC(), // [cite: 13]
-                contract.priceNumerator(), // [cite: 12]
+                contract.totalUsdcRaised(),
+                contract.totalEbondsSold(),
+                contract.getParticipantCount(),
+                contract.getTotalUnclaimedTokens(), // ✅ Fixed: correct function name
+                contract.minimumPurchaseUSDC(),
+                contract.priceNumerator(),
                 contract.paused(),
-                contract.getBonusTiers() // [cite: 99]
+                contract.getBonusTiers()
             ]);
 
             setStats({
@@ -64,15 +64,31 @@ const AdminDashboard = () => {
         try {
             const provider = library || new ethers.providers.JsonRpcProvider(process.env.REACT_APP_RPC_URL);
             const contract = new ethers.Contract(SALE_ADDRESS, SALE_ABI, provider);
-            const info = await contract.getVestingInfo(searchAddr); // [cite: 76]
+            
+            // ✅ FIXED: Updated to match contract's return structure
+            const info = await contract.getVestingInfo(searchAddr);
+            
+            // Contract returns: (claimableAmount, vestingAmount, vestedFromSchedule, totalClaimable, totalClaimed, vestingStartTime, vestingEndTime)
+            const totalPurchased = parseFloat(ethers.utils.formatUnits(info.claimableAmount, 18)) + 
+                                   parseFloat(ethers.utils.formatUnits(info.vestingAmount, 18));
+            
+            const vestingDuration = info.vestingEndTime.toNumber() - info.vestingStartTime.toNumber();
+            const elapsed = Math.min(Date.now() / 1000 - info.vestingStartTime.toNumber(), vestingDuration);
+            const progressPercent = vestingDuration > 0 ? Math.min((elapsed / vestingDuration) * 100, 100) : 0;
+            
             setUserData({
-                purchased: ethers.utils.formatUnits(info.purchased, 18),
-                claimed: ethers.utils.formatUnits(info.claimed, 18),
-                claimable: ethers.utils.formatUnits(info.claimable, 18),
-                progress: info.progress.toNumber(), // 
-                end: new Date(info.vestingEnd.toNumber() * 1000).toLocaleDateString() // [cite: 78]
+                purchased: totalPurchased.toFixed(2),
+                claimed: ethers.utils.formatUnits(info.totalClaimed, 18),
+                claimable: ethers.utils.formatUnits(info.totalClaimable, 18),
+                progress: Math.round(progressPercent),
+                end: info.vestingEndTime.toNumber() > 0 
+                    ? new Date(info.vestingEndTime.toNumber() * 1000).toLocaleDateString() 
+                    : 'N/A'
             });
-        } catch (e) { toast.error("User not found"); }
+        } catch (e) { 
+            console.error(e);
+            toast.error("User not found or no vesting schedule"); 
+        }
     };
 
     useEffect(() => { 
